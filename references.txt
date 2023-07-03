@@ -1,0 +1,19 @@
+ONNX repository:
+https://github.com/onnx/onnx
+
+ONNX concepts: 
+https://onnx.ai/onnx/intro/concepts.html
+
+ONNX structure description:
+https://github.com/onnx/onnx/blob/main/docs/IR.md
+
+------------------------------------------------
+
+ONNX reader: 
+https://grpc.io/docs/protoc-installation/
+
+  - per compilare e usare il reader:
+  protoc --decode=onnx.ModelProto onnx.proto < NOME.onnx
+
+ONNX visualizer:
+https://netron.app/
