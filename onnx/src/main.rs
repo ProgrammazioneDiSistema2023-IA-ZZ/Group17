@@ -5,13 +5,16 @@ use std::str;
 /*
 
 TODO:
+
+0 -> leggere il proto.onnx 
+     generare le struct ModelProto, GraphProto, NodeProto,... seguendo le annotations
+     /
+     altrimenti ricercare nel file (ad es. ModelProto) e poi da li ricercare il FIELD_NUMBER che serve...
+
 1 -> leggere il .onnx
     //08 -> 0000 1000
     //wire_type = 0, field_number = 1
-    //ho gia creato un ModelProto, cerco il field con number = filed_number e creo la struct che mi dice(i.e. GraphProto)
-
-2 -> per ogni message in onnx.proto, va creata la struct corrispondente seguendo le annotations di onnx.proto,
-    fornendo la relativa implementazione
+    //ho gia creato un ModelProto, cerco il field con number = filed_number e creo la struct che mi dice(i.e. Graph)
 
 3 -> riguardo alla correttezza sintattica possiamo seguire il principio per cui:
         se io voglio creare un ModelProto all'interno di un GraphProto, cercherà di creare un'istanza di un oggetto che
