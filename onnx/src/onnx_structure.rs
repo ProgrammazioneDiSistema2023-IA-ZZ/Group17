@@ -61,7 +61,7 @@ struct TrainingInfoProto {
     update_binding: Vec<StringStringEntryProto>
 }
 
-struct ModelProto {
+pub struct ModelProto {  //ENTRY POINT
     ir_version: Option<i64>,
     opset_import: Vec<OperatorSetIdProto>,
     producer_name: Option<String>,
@@ -73,6 +73,24 @@ struct ModelProto {
     metadata_props: Vec<StringStringEntryProto>,
     training_info: Vec<TrainingInfoProto>,
     functions: Vec<FunctionProto>
+}
+
+impl ModelProto {
+    pub fn new() -> Self {
+        Self {
+            ir_version: Default::default(),
+            opset_import: Default::default(),
+            producer_name: Default::default(),
+            producer_version: Default::default(),
+            domain: Default::default(),
+            model_version: Default::default(),
+            doc_string: Default::default(),
+            graph: Default::default(),
+            metadata_props: Default::default(),
+            training_info: Default::default(),
+            functions: Default::default()
+        }
+    }
 }
 
 struct StringStringEntryProto {
@@ -169,7 +187,7 @@ struct Dimension {
 }
 
 struct TypeProto {
-    value: ValueTypeProto,
+    value: Box<ValueTypeProto>,
     denotation: Option<String>
 }
 
@@ -179,7 +197,7 @@ struct Tensor {
 }
 
 struct Sequence {
-    elem_type: Option<TypeProto>
+    elem_type: Option<Box<TypeProto>>
 }
 
 struct Map {
@@ -203,7 +221,7 @@ struct Opaque {
 
 enum ValueTypeProto {
     TensorType(Tensor),
-    SequenceType(Sequence),
+    SequenceType(Box<Sequence>),
     MapType(Map),
     OptionalType(Optional),
     SparseTensorType(SparseTensor),
