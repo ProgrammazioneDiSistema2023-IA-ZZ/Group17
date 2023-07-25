@@ -1,76 +1,88 @@
 pub(crate) mod proto_structure;
-use proto_structure::Value;
-use proto_structure::Proto;
+
+use proto_structure::*;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use crate::read_proto::proto_structure::ProtoAttribute;
 
-pub fn create_struct_from_proto_file(file: String) -> Result<Vec<Proto>, String> {
-    // Apri il file in lettura
-    let file = File::open(file).expect("Failed to read file");
-    let reader = BufReader::new(file);
+pub fn create_struct_from_proto_file(file: &str) -> Result<Vec<Proto>, String> {
+  //opening file in read mode
+  let file = File::open(file).expect("Failed to open and read file .proto");
+  let reader = BufReader::new(file);
 
-    // Crea una variabile per tenere traccia del numero di riga
-    let mut line_number = 1;
+  let mut structures: Vec<Proto> = Vec::new(); //this data structure maintains all the structures contained in the .proto file (i.e. Message, Enum structures)
+  let mut structures_index = 0; //this index points the message structure which is being managed
+  //TODO: capire se si vuol dare compatibilità anche con la versione 3 di proto. Questa è più complicata da leggere perché gli attributi non iniziano con un annotazione...
+  let mut _proto_version = 2; //since version 2 and 3 are valid, this application needs to work properly with both versions
 
-    let mut structures: Vec<Proto> = Vec::new();
-    let mut position = 0;
+  for line in reader.lines() {
+    let line = line.expect("Failed to read line from .proto file");
 
-    // Scorri ogni riga del file
-    for line in reader.lines() {
-        let line = line.expect("Failed to read line");
-
-        // Cerca la parola "message" all'interno della riga (ignorando maiuscole e minuscole)
-        if line.to_lowercase().contains("message") && !line.to_lowercase().contains("//") {
-            let trimmed_string = line.trim();
-
-            // Dividi la stringa in parole (separate da spazi bianchi) e prendi la seconda parola
-            let mut words = trimmed_string.split_whitespace();
-            if let Some(word) = words.nth(1) {
-                position += 1;
-
-                let mut p = Proto::new();
-                p.name = word.to_string();
-                structures.push(p);
-            } else {
-                println!("ERROR!");
-            }
-        }
-        //Cerco gli attributi della struct
-        if (line.to_lowercase().contains("optional") || line.to_lowercase().contains("repeated")) && !line.to_lowercase().contains("//") {
-            let mut words = line.split_whitespace();
-
-            // Estrai i tre pezzi di informazione
-            if let Some(optional) = words.next() {
-                if let Some(data_type) = words.next() {
-                    if let Some(attr_name_with_equals) = words.next() {
-                        // Rimuovi il carattere '=' dalla stringa dell'attributo
-                        let attr_name = attr_name_with_equals.trim_end_matches('=');
-
-                        words.next();
-
-                        if let Some(value) = words.next() {
-                            let mut v = Value::new();
-                            v.optional = optional.parse().unwrap();
-                            v.attribute_name = attr_name.parse().unwrap();
-                            v.value_type = data_type.parse().unwrap();
-                            if let Ok(trimmed) = value.trim_end_matches(";").parse::<i32>() {
-                                v.tag = trimmed;
-                            } else {
-                                println!("ERRORE TAG A LINEA: {}", line_number);
-                                return Err("ERRORE".to_string());
-                            }
-
-                            structures.get_mut(position - 1).unwrap().attributes.push(v);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Incrementa il numero di riga
-        line_number += 1;
+    //skipping commented lines
+    if line.to_lowercase().contains("//") {
+      continue;
     }
 
-    Ok(structures)
+    //line starts with "syntax" word (not case sensitive)
+    if line.to_lowercase().contains("syntax"){
+      //i.e. syntax = "proto3"; the 3 needs to be extracted and saved
+      let trimmed_string = line.trim();
+      let mut words = trimmed_string.split_whitespace();
+      if let Some(version) = words.nth(2) {
+        _proto_version = (&version[6..7]).parse().unwrap();
+      }else {
+        return Err("Cannot get the specified index of the trimmed line!".to_string());
+      }
+      continue;
+    }
+
+    //line starts with "message" word (not case sensitive)
+    if line.to_lowercase().contains("message"){
+      let trimmed_string = line.trim();
+
+      //since the "message" word was found, its following value must be saved:
+      // i.e. message Person -> "Person" is what it's needed to be saved (it is represented by word at first position, once the line has been trimmed)
+      let mut words = trimmed_string.split_whitespace();
+      if let Some(name) = words.nth(1) {
+        //proto structure creation and allocation into "structures" vector
+        let mut p = Proto::new();
+        p.name = name.to_string();
+        structures.push(p);
+        structures_index+=1;
+      } else {
+        return Err("Cannot get the specified index of the trimmed line!".to_string());
+      }
+      continue;
+    }
+
+    //current line contains an attribute of a message structure
+    if line.to_lowercase().contains("optional") || line.to_lowercase().contains("repeated") || line.to_lowercase().contains("required") || line.to_lowercase().contains("map"){
+      let mut words = line.split_whitespace();
+
+      if let Some(annotation) = words.next() {
+        if let Some(attribute_type) = words.next() {
+          if let Some(attribute_name_with_equals) = words.next() {
+            let attribute_name = attribute_name_with_equals.trim_end_matches('=');
+            words.next();
+            if let Some(tag) = words.next() {
+              let mut attribute = ProtoAttribute::new();
+              attribute.annotation = annotation.parse().unwrap();
+              attribute.attribute_type = attribute_type.parse().unwrap();
+              attribute.attribute_name = attribute_name.parse().unwrap();
+              if let Ok(tag) = tag.trim_end_matches(";").parse::<i32>() {
+                attribute.tag = tag;
+              } else {
+                return Err("Cannot get TAG from .proto file".to_string());
+              }
+
+              structures.get_mut(structures_index - 1).unwrap().attributes.push(attribute);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  Ok(structures)
 }
