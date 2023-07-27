@@ -15,3 +15,6 @@ Cargo.lock
 
 # C-Lion configurations
 .idea
+
+# binaries
+.DS_Store

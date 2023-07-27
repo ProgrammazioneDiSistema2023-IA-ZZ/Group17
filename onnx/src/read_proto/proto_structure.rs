@@ -47,16 +47,14 @@ This structure contains an Attribute of a Message struct in a .proto file. (e.g.
 pub struct ProtoAttribute {
   pub annotation: ProtoAnnotation,
   pub attribute_name: String,
-  pub attribute_type: String,
-  pub tag: i32
+  pub attribute_type: String
 }
 impl ProtoAttribute {
   pub(crate) fn new() -> Self {
     Self {
       annotation: Default::default(),
       attribute_name: Default::default(),
-      attribute_type: Default::default(),
-      tag: Default::default()
+      attribute_type: Default::default()
     }
   }
 }
