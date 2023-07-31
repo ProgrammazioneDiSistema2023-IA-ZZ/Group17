@@ -37,12 +37,13 @@ fn main() {
       println!("{:?}", result);
       //read_onnx(&result);
     },
-    Err(_) => {
-      println!("Failed to read from .proto file");
+    Err(err) => {
+      println!("{}", err);
     }
   }
 }
 
+/*
 fn read_onnx(proto_structure: &Vec<Proto>) {
   let onnx_bytes = std::fs::read("models/model.onnx").expect("Failed to read file");
   let mut counter = 0;
@@ -78,9 +79,9 @@ fn get_field<'a>(current_struct: &String, field_number: u64, proto_structure: &V
   for el in proto_structure {
     if el.name == current_struct.to_string() {
       for at in &el.attributes {
-        if at.tag == field_number as i32 {
+        //if at.tag == field_number as i32 {
           return Some(at.attribute_name.clone());
-        }
+        //}
       }
     }
   }
@@ -102,3 +103,5 @@ fn get_wire_type(binary_number: &str) -> String {
     _ => "NON TROVATO".to_string()
   }
 }
+
+ */

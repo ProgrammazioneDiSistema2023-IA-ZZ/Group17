@@ -9,6 +9,8 @@ accordingly to Protocol Buffers v2(proto2) documentation (https://protobuf.dev/p
   - Map: means that a certain scalar value has been encoded as "packed" (this is done by default in proto3, while must be specified
          in proto2). e.g. Map<string, i32> shows an i32 value which is packed as a string encoding (with a certain LEN).
  */
+use core::fmt::Debug;
+use std::collections::HashMap;
 use std::str::FromStr;
 
 #[repr(C)]
@@ -35,6 +37,7 @@ impl FromStr for ProtoAnnotation {
     }
   }
 }
+
 /*
 This structure contains an Attribute of a Message struct in a .proto file. (e.g. optional string name = 1;)
   - annotation: this annotation specifies a modifier for the attribute. This is only present in proto3 version. (i.e. optional)
@@ -63,18 +66,76 @@ impl ProtoAttribute {
 This structure contains a "message" structure of a .proto file
   - name: represents the name of the structure (e.g. message Person -> name=Person)
   - attributes: this vector contains the list of attributes. Each attribute is represented by an Attribute structure
- */
+*/
 #[repr(C)]
-#[derive(Debug)]
-pub struct Proto {
-  pub name: String,
-  pub attributes: Vec<ProtoAttribute>
+#[derive(Default)]
+pub struct Message<'a> {
+  pub attributes: HashMap<i32, ProtoAttribute>, //<tag, ProtoAttribute>
+  pub contents: HashMap<String, &'a dyn Proto<'a>> //a message could contain itself others messages/one-of
 }
-impl Proto {
-  pub(crate) fn new() -> Self {
+impl<'a> Proto<'a> for Message<'a> {
+  fn new() -> Self {
     Self {
-      name: String::new(),
-      attributes: Vec::new()
+      attributes: HashMap::new(),
+      contents: HashMap::new()
     }
   }
+  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>> {
+    Some(&self.attributes)
+  }
+
+  fn set_attributes(&mut self, key: i32, value: ProtoAttribute) {
+    self.attributes.insert(key, value);
+  }
+
+  fn get_contents_mut(&'a mut self) -> &'a mut HashMap<String, &'a dyn Proto<'a>>{
+    &mut self.contents
+  }
+
+  fn set_contents(&'a mut self, key: String, value: &'a dyn Proto<'a>) {
+    self.contents.insert(key, value);
+  }
 }
+
+#[repr(C)]
+#[derive(Default, Debug)]
+pub struct OneOf {
+  pub attributes: HashMap<i32, ProtoAttribute>, //<tag, (annotation::Default, type, name)>
+}
+impl Proto<'_> for OneOf {
+  fn new() -> Self {
+    Self {
+      attributes: HashMap::new(),
+    }
+  }
+  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>> {
+    Some(&self.attributes)
+  }
+
+  fn set_attributes(&mut self, key: i32, value: ProtoAttribute) {
+    self.attributes.insert(key, value);
+  }
+
+  fn get_contents_mut(&mut self) -> &mut HashMap<String, &dyn Proto> {
+    unimplemented!()
+  }
+
+  fn set_contents(&mut self, key: String, value: &'_ dyn Proto) {
+    unimplemented!()
+  }
+}
+
+pub trait Proto<'a>{
+  fn new() -> Self where Self: Sized;
+  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>>;
+  fn set_attributes(&mut self, key: i32, value: ProtoAttribute);
+  fn get_contents_mut(&'a mut self) -> &'a mut HashMap<String, &'a dyn Proto<'a>>;
+  fn set_contents(&'a mut self, key: String, value: &'a dyn Proto<'a>);
+}
+impl Debug for dyn Proto<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    write!(f, "{:?}", self)
+  }
+}
+
+
