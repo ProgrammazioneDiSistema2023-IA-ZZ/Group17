@@ -1,3 +1,8 @@
+use core::fmt::Debug;
+use std::collections::HashMap;
+use std::fmt::Formatter;
+use std::str::FromStr;
+
 /*
 This structure enumerates the possible kind of annotations an attribute of a Proto message could assume
 accordingly to Protocol Buffers v2(proto2) documentation (https://protobuf.dev/programming-guides/proto2/).
@@ -9,10 +14,6 @@ accordingly to Protocol Buffers v2(proto2) documentation (https://protobuf.dev/p
   - Map: means that a certain scalar value has been encoded as "packed" (this is done by default in proto3, while must be specified
          in proto2). e.g. Map<string, i32> shows an i32 value which is packed as a string encoding (with a certain LEN).
  */
-use core::fmt::Debug;
-use std::collections::HashMap;
-use std::str::FromStr;
-
 #[repr(C)]
 #[derive(Default, Debug, PartialEq)]
 pub enum ProtoAnnotation{
@@ -27,6 +28,7 @@ pub struct ParseProtoAnnotationError;
 
 impl FromStr for ProtoAnnotation {
   type Err = ParseProtoAnnotationError;
+  //this allows to automatically parse() from a string (red from .proto file) into a ProtoAnnotation Type
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
       "optional" => Ok(ProtoAnnotation::Optional),
@@ -40,7 +42,7 @@ impl FromStr for ProtoAnnotation {
 
 /*
 This structure contains an Attribute of a Message struct in a .proto file. (e.g. optional string name = 1;)
-  - annotation: this annotation specifies a modifier for the attribute. This is only present in proto3 version. (i.e. optional)
+  - annotation: this annotation specifies a modifier for the attribute(i.e. optional). This is only present in proto2 version, while it could be omitted in proto3 version
   - attribute_name: the name of the attribute (i.e. name)
   - attribute_type: the type of the attribute (i.e. string)
   - tag: this is the number which identifies the attribute (i.e. 1)
@@ -63,79 +65,85 @@ impl ProtoAttribute {
 }
 
 /*
-This structure contains a "message" structure of a .proto file
-  - name: represents the name of the structure (e.g. message Person -> name=Person)
-  - attributes: this vector contains the list of attributes. Each attribute is represented by an Attribute structure
+This enum allows a certain Proto structure to be distinguished between a "message" or a "one of"
+ */
+#[repr(C)]
+#[derive(Default, Debug, PartialEq)]
+pub enum KindOf{
+  #[default]
+  Message,
+  OneOf
+}
+
+/*
+This structure contains a "message" structure or a "one of" structure contained in a .proto file.
+Since this structure will be used while parsing .onnx files in order to understand its content,
+all the message/one-of contained in the .proto file are stored in a HashMap (which allows O(1) searches).
+Specifically, let's make an example:
+  .proto file ->
+            message Person {
+              oneof Address {
+                string city = 3;
+                int32 number = 5;
+              }
+              optional string email = 1;
+            };
+
+  runtime ->
+            proto_map: HashMap<String, Proto> = [person, proto1];
+
+              proto1: Proto = {
+                kind_of: KindOf::Message,
+                attributes: HashMap<i32, ProtoAttribute>[(1, protoAttribute1)],
+                contents: HashMap<String, proto2>[(address, proto2)]
+              };
+
+                protoAttribute1: ProtoAttribute = {
+                  annotation: ProtoAnnotation::optional,
+                  attribute_name: "email",
+                  attribute_type: "string"
+                };
+                proto2: Proto = {
+                  kind_of: KindOf::OneOf,
+                  attributes: HashMap<i32, ProtoAttribute>[(3, protoAttribute2), (5, protoAttribute3)],
+                  contents: HashMap<String, proto2>[]
+                };
+
+                  protoAttribute2: ProtoAttribute = {
+                    annotation: ProtoAnnotation::default(),
+                    attribute_name: "city",
+                    attribute_type: "string"
+                  };
+                  protoAttribute3: ProtoAttribute = {
+                    annotation: ProtoAnnotation::default(),
+                    attribute_name: "number",
+                    attribute_type: "int32"
+                  };
+
+  - kind_of: represents the type of the structure(Message of OneOf)
+  - attributes: this HashMap contains the list of attributes. Each attribute is represented by a ProtoAttribute. The HashMap allows to
+              execute O(1) searches once having the Tag(i32) key to search.
+  - contents: this HashMap allows to contain other "message"/"oneof" structures recursively, preserving the O(1) access time
 */
 #[repr(C)]
 #[derive(Default)]
-pub struct Message<'a> {
+pub struct Proto {
+  pub kind_of: KindOf, //one value between [Message, OneOf]
   pub attributes: HashMap<i32, ProtoAttribute>, //<tag, ProtoAttribute>
-  pub contents: HashMap<String, &'a dyn Proto<'a>> //a message could contain itself others messages/one-of
+  pub contents: HashMap<String, Proto> //<name, Proto>, since a message could contain itself others messages/one-of
 }
-impl<'a> Proto<'a> for Message<'a> {
-  fn new() -> Self {
+impl Proto{
+  pub(crate) fn new(kind_of: KindOf) -> Self {
     Self {
+      kind_of,
       attributes: HashMap::new(),
       contents: HashMap::new()
     }
   }
-  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>> {
-    Some(&self.attributes)
-  }
-
-  fn set_attributes(&mut self, key: i32, value: ProtoAttribute) {
-    self.attributes.insert(key, value);
-  }
-
-  fn get_contents_mut(&'a mut self) -> &'a mut HashMap<String, &'a dyn Proto<'a>>{
-    &mut self.contents
-  }
-
-  fn set_contents(&'a mut self, key: String, value: &'a dyn Proto<'a>) {
-    self.contents.insert(key, value);
+}
+impl Debug for Proto{
+  fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{{\n\t{:?} \n\tattributes: {:?} \n\tcontents: {:?}\n}}", self.kind_of, self.attributes, self.contents)
   }
 }
-
-#[repr(C)]
-#[derive(Default, Debug)]
-pub struct OneOf {
-  pub attributes: HashMap<i32, ProtoAttribute>, //<tag, (annotation::Default, type, name)>
-}
-impl Proto<'_> for OneOf {
-  fn new() -> Self {
-    Self {
-      attributes: HashMap::new(),
-    }
-  }
-  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>> {
-    Some(&self.attributes)
-  }
-
-  fn set_attributes(&mut self, key: i32, value: ProtoAttribute) {
-    self.attributes.insert(key, value);
-  }
-
-  fn get_contents_mut(&mut self) -> &mut HashMap<String, &dyn Proto> {
-    unimplemented!()
-  }
-
-  fn set_contents(&mut self, key: String, value: &'_ dyn Proto) {
-    unimplemented!()
-  }
-}
-
-pub trait Proto<'a>{
-  fn new() -> Self where Self: Sized;
-  fn get_attributes(&self) -> Option<&HashMap<i32, ProtoAttribute>>;
-  fn set_attributes(&mut self, key: i32, value: ProtoAttribute);
-  fn get_contents_mut(&'a mut self) -> &'a mut HashMap<String, &'a dyn Proto<'a>>;
-  fn set_contents(&'a mut self, key: String, value: &'a dyn Proto<'a>);
-}
-impl Debug for dyn Proto<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    write!(f, "{:?}", self)
-  }
-}
-
 

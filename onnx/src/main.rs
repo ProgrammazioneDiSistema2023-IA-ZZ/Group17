@@ -38,7 +38,7 @@ fn main() {
       //read_onnx(&result);
     },
     Err(err) => {
-      println!("{}", err);
+      eprintln!("{}", err);
     }
   }
 }
