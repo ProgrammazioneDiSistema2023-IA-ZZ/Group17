@@ -17,3 +17,7 @@ https://grpc.io/docs/protoc-installation/
 
 ONNX visualizer:
 https://netron.app/
+
+
+GENERATE STRUCT FROM .proto
+protoc --rust_out=path/to/output_dir path/to/your/file.proto
