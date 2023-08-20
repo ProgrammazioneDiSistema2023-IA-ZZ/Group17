@@ -21,36 +21,17 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
     let mut lifo_stack_struct: Vec<String> = Vec::new();
     lifo_stack_struct.push("modelproto".to_string());
 
-    let mut count_parts = 0;
-    let mut concat_part: String = String::new();
-
     while counter < onnx_bytes.len() {
-        /* Byte to binary */
+        /* Byte[10] to binary */
         let mut binary_string = format!("{:b}", onnx_bytes[counter]);
 
-        /* It means that the binary number starts with 1. Non indipendent information contained in the number */
+        /* It means that the binary number starts with bit 1. Dependant information contained between the following bytes */
         if binary_string.len() >= 8 {
-            //Il byte dopo è parte dell'informazione
-            while binary_string.len() >= 8 {
-                count_parts += 1;
-                counter += 1;
-                binary_string = format!("{:b}", onnx_bytes[counter]);
-            }
-            count_parts += 1; /* Per contare l'ultima parte */
-
-            for i in 0..count_parts {
-                let mut part = format!("{:b}", onnx_bytes[counter - i]);
-                if i != 0 {
-                    part = format!("{}{}", '0', &part[1..]); // Crea una nuova stringa con il primo carattere modificato
-                    part = format!("{:b}", u32::from_str_radix(&*part, 2).unwrap());
-                }
-
-                concat_part = format!("{}{}", concat_part, part);
-                binary_string = concat_part.clone();
-            }
+            binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes)
         }
 
         /* Siccome le stringhe binarie hanno lunghezze diverse (tra 0 e 7) serve sapere a che posizione si trovano gli ultimi 3 bit */
+        // PER I BYTE CORRELATI, IL PROBLEMA NON SUSSISTE PERCHE VENGONO AGGIUNTI IN TESTA GLI 0 MANCANTI
         let partition_index = binary_string.len().saturating_sub(3);
 
         /* Get the last three bits */
@@ -74,12 +55,15 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
 
             lifo_stack_struct.push(field_type.clone());
             /* Byte to binary */
-            let length_binary = format!("{:b}", onnx_bytes[counter]);
+            let mut length_binary = format!("{:b}", onnx_bytes[counter]);
+
+            if length_binary.len() >= 8 {
+                length_binary = concat_bytes(length_binary, &mut counter, &onnx_bytes);
+            }
 
             length_object = u64::from_str_radix(&*length_binary, 2).unwrap() as i32;
             lifo_stack_length.push(length_object);
-
-            println!("{} -> {}, {} ({})", lifo_stack_struct.last().unwrap(), field_name, length_object, wire_type);
+            println!("({}) {} -> {}, {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, length_object, wire_type);
         } else if wire_type == "LEN" {
             counter += 1;
             /* Byte to binary */
@@ -94,7 +78,7 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
                 }
             }
 
-            println!("In {} => {} = {} ({})", lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
+            println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
 
             counter += value as usize;
             decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2); /* Uno per WT + FN, value per la lunghezza della stringa e 1 per il campo dimensione della stringa */
@@ -104,13 +88,55 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
             let value_binary = format!("{:b}", onnx_bytes[counter]);
             value = u64::from_str_radix(&*value_binary, 2).unwrap() as i32;
 
-            println!("In {} => {} = {} ({})", lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
+            println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
 
             decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2);
         }
 
         counter += 1;
     }
+}
+
+fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>) -> String {
+    let mut count_parts = 0;
+    let mut concat_part: String = String::new();
+
+    let mut binary_string = start_string.clone();
+    //following byte is related to previous byte
+    while binary_string.len() >= 8 {
+        count_parts += 1;
+        *counter += 1;
+        binary_string = format!("{:b}", onnx_bytes[*counter]);
+    }
+    count_parts += 1;
+
+    /*the following code drops the MSB, concatenates in Little Endian the bytes and drops the exceeding msb zeros*/
+    for i in 0..count_parts {
+        let a = *counter + 1 - (count_parts - i);
+        let mut part = format!("{:b}", onnx_bytes[*counter + 1 - (count_parts - i)]);
+        //drops of the first bit which value is 1 (except for the last byte to concatenate, which value is 0)
+        if i < count_parts - 1 {
+            part = format!("{}", &part[1..]);
+        }
+
+        //little endian concatenation of the inner bytes and drop of the msb 0s
+        if i != 0 {
+            concat_part = format!("{}{}", part, concat_part);
+            concat_part = format!("{:b}", u32::from_str_radix(&*concat_part, 2).unwrap());
+        } else {
+            concat_part = part;
+        }
+        binary_string = concat_part.clone();
+    }
+    if binary_string.len() % 8 != 0 { //if the resulting bytes are not multiple of 8 (8bit=1byte), then padding 0s are added at the head of the string
+        let mut padding_zeros = (binary_string.len() as f64 / 8f64).ceil(); //round to upper integer
+        padding_zeros = ((padding_zeros * 8.0) - binary_string.len() as f64);
+        for _j in 0..padding_zeros as usize {
+            binary_string = format!("0{}", binary_string);
+        }
+    }
+
+    binary_string
 }
 
 fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, value_to_decrement: i32) {
@@ -216,7 +242,7 @@ fn get_wire_type(binary_number: &str) -> String {
         3 => "SGROUP".to_string(),
         4 => "EGROUP".to_string(),
         5 => "I32".to_string(),
-        _ => "NON TROVATO".to_string()
+        _ => "not found".to_string()
     }
 }
 
