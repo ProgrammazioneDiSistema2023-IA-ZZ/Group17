@@ -34,8 +34,8 @@ pub fn create_struct_from_proto_file(file: &str) -> Result<HashMap<String, Proto
       continue;
     }
 
-    //the enums are not useful for our purposes, can be omitted. By the way, the nesting level must be increased
-    if line.starts_with("enum") {
+    //skipping the enum version
+    if line.starts_with("enum version"){
       proto_level += 1;
       continue;
     }
@@ -66,11 +66,13 @@ pub fn create_struct_from_proto_file(file: &str) -> Result<HashMap<String, Proto
     }
 
     //line starts with "message"/"oneof" word
-    if line.starts_with("message") || line.starts_with("oneof") {
+    if line.starts_with("message") || line.starts_with("oneof") || line.starts_with("enum"){
       if line.starts_with("message") { //saving in which structure will be added the next read lines
         parent_type = KindOf::Message;
-      } else {
+      } else if line.starts_with("oneof"){
         parent_type = KindOf::OneOf;
+      } else{
+        parent_type = KindOf::Enum;
       }
 
       proto_level += 1; //increasing nesting level
@@ -87,6 +89,7 @@ pub fn create_struct_from_proto_file(file: &str) -> Result<HashMap<String, Proto
         }
 
         let proto_name_path: Vec<&str> = current_proto_name.split('/').collect();
+        println!("{:?}", proto_name_path);
         //add a new proto in the correct position(path) of hashmap
         match adding_new_proto(&proto_name_path, proto_name, &current_proto_name, &mut proto_map, &parent_type) {
           Ok(()) => continue,
@@ -105,11 +108,21 @@ pub fn create_struct_from_proto_file(file: &str) -> Result<HashMap<String, Proto
       };
     }
 
-    //if the flow reached this point, the content is an attribute without annotation (proto3 style) or an enum content(which is useless for these purposes).
+    //if the flow reached this point, the content is an attribute without annotation (proto3 style).
     if parent_type == KindOf::OneOf { //checking that the attribute is inside a oneof structure
       let words = line.split_whitespace();
       //adding the attribute to the oneof
       match adding_proto_attribute(3, words, &current_proto_name, &mut proto_map) {
+        Ok(()) => continue,
+        Err(err) => { return Err(err); }
+      };
+    }
+
+    //if the flow reached this point, the content is an enum content.
+    if parent_type == KindOf::Enum { //checking that the attribute is inside a enum structure
+      let words = line.split_whitespace();
+      //adding the attribute to the enum
+      match adding_enum_attribute(words, &current_proto_name, &mut proto_map) {
         Ok(()) => continue,
         Err(err) => { return Err(err); }
       };
@@ -157,9 +170,10 @@ fn adding_new_proto(proto_name_path: &Vec<&str>, proto_name: &str, current_proto
         match map.get(proto_name_path[proto_name_path.len() - 1]) { //avoiding duplicates; i.e. 2 or more message/oneof with the same name
           Some(_) => { Err("Cannot insert duplicated values into HashMap.".to_string()) }
           None => {
-            match proto_type { //adding the new proto (message/oneof)
+            match proto_type { //adding the new proto (message/oneof/enum)
               KindOf::Message => map.insert(proto_name.to_string(), Proto::new(KindOf::Message)),
-              KindOf::OneOf => map.insert(proto_name.to_string(), Proto::new(KindOf::OneOf))
+              KindOf::OneOf => map.insert(proto_name.to_string(), Proto::new(KindOf::OneOf)),
+              KindOf::Enum => map.insert(proto_name.to_string(), Proto::new(KindOf::Enum))
             };
             Ok(())
           }
@@ -219,6 +233,45 @@ fn adding_proto_attribute(proto_version: i32, mut words: SplitWhitespace, curren
         } else {
           return Err("Cannot get TAG from .proto file".to_string());
         }
+      }
+    }
+  }
+  Ok(())
+}
+
+
+/*
+This function allows to add a new attribute to a proto of type Enum.
+- It takes 4 parameters.
+  ~ words: the line just red from bufreader
+  ~ current_proto_name: if the proto would added at the 0 level (i.e. directly in the proto_map), this allows to directly search for it in advance (avoiding bad situations in which this name has already be added before)
+  ~ proto_map: HashMap which contains the .proto content
+- It returns () if the adding action has been successful, a string of error otherwise
+ */
+fn adding_enum_attribute(mut words: SplitWhitespace, current_proto_name: &String, mut proto_map: &mut HashMap<String, Proto>) -> Result<(), String> {
+  if let Some(attribute_type) = words.next() {
+    words.next();
+    if let Some(tag) = words.next() {
+      if let Ok(tag) = tag.split(';').collect::<Vec<&str>>()[0].parse::<i32>() {
+        let proto_name_path: Vec<&str> = current_proto_name.split('/').collect();
+
+        match search_proto_in_hashmap(&mut proto_map, &proto_name_path, 0) { //this function searches and returns the proto to which the attribute will be added
+          Ok(proto) => {
+            match proto.attributes.get(&tag) { //avoiding duplicates; i.e. 2 or more attributes with the same tag
+              Some(_) => { return Err("Cannot insert duplicated values into HashMap.".to_string()); }
+              None => { //adding the new attribute
+                let mut attribute = ProtoAttribute::new();
+                attribute.annotation = ProtoAnnotation::default();
+                attribute.attribute_type = attribute_type.parse().unwrap();
+                attribute.attribute_name = String::default();
+                proto.attributes.insert(tag, attribute);
+              }
+            };
+          }
+          Err(err) => { return Err(err); }
+        };
+      } else {
+        return Err("Cannot get TAG from .proto file".to_string());
       }
     }
   }

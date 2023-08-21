@@ -28,10 +28,6 @@ use read_proto::proto_structure::*;
 use onnx_structure::ModelProto;
 use crate::read_onnx::read_onnx_file;
 
-use onnxruntime::environment::Environment;
-use onnxruntime::LoggingLevel;
-use onnxruntime::GraphOptimizationLevel;
-
 fn main() {
   // Leggi il contenuto del file ONNX in un buffer
   //let onnx_bytes = std::fs::read("models/squeezenet1.0-8.onnx").expect("Failed to read file");

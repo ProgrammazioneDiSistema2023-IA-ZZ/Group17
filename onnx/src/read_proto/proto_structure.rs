@@ -65,14 +65,15 @@ impl ProtoAttribute {
 }
 
 /*
-This enum allows a certain Proto structure to be distinguished between a "message" or a "one of"
+This enum allows a certain Proto structure to be distinguished between a "message" or a "one of" or a "enum"
  */
 #[repr(C)]
 #[derive(Default, Debug, PartialEq)]
 pub enum KindOf{
   #[default]
   Message,
-  OneOf
+  OneOf,
+  Enum
 }
 
 /*
@@ -120,7 +121,7 @@ Specifically, let's make an example:
                     attribute_type: "int32"
                   };
 
-  - kind_of: represents the type of the structure(Message of OneOf)
+  - kind_of: represents the type of the structure(Message or OneOf or Enum)
   - attributes: this HashMap contains the list of attributes. Each attribute is represented by a ProtoAttribute. The HashMap allows to
               execute O(1) searches once having the Tag(i32) key to search.
   - contents: this HashMap allows to contain other "message"/"oneof" structures recursively, preserving the O(1) access time
@@ -128,7 +129,7 @@ Specifically, let's make an example:
 #[repr(C)]
 #[derive(Default)]
 pub struct Proto {
-  pub kind_of: KindOf, //one value between [Message, OneOf]
+  pub kind_of: KindOf, //one value between [Message, OneOf, Enum]
   pub attributes: HashMap<i32, ProtoAttribute>, //<tag, ProtoAttribute>
   pub contents: HashMap<String, Proto> //<name, Proto>, since a message could contain itself others messages/one-of
 }

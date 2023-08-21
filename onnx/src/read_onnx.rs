@@ -63,7 +63,14 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
 
             length_object = u64::from_str_radix(&*length_binary, 2).unwrap() as i32;
             lifo_stack_length.push(length_object);
-            println!("({}) {} -> {}, {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, length_object, wire_type);
+            let is_enum_with_type = search_enum_in_proto_structure(proto_structure, lifo_stack_struct.last().unwrap(), length_object);
+
+            if is_enum_with_type.is_empty() {
+              println!("({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len()-2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object, wire_type);
+            }else{
+              println!("({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len()-2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
+            }
+
         } else if wire_type == "LEN" {
             counter += 1;
             /* Byte to binary */
@@ -200,6 +207,7 @@ fn get_field(current_struct: &String, field_number: i32, proto_structure: &HashM
                         //println!("{} -> {:?}, {:?}", inner_el.0, inner_el.1.kind_of, inner_el.1.attributes);
                         match inner_el.1.kind_of {
                             KindOf::Message => continue,
+                            KindOf::Enum => continue,
                             KindOf::OneOf => {
                                 match inner_el.1.attributes.get(&field_number) {
                                     Some(ap) => {
@@ -244,6 +252,30 @@ fn get_wire_type(binary_number: &str) -> String {
         5 => "I32".to_string(),
         _ => "not found".to_string()
     }
+}
+
+
+fn search_enum_in_proto_structure(map: &HashMap<String, Proto>, enum_name: &str, tag_value: i32) -> String {
+  if map.is_empty(){
+    return String::default();
+  }
+  return match map.get(enum_name) {
+    Some(proto) => {
+      match proto.kind_of {
+        KindOf::Enum => {
+          return String::from(&proto.attributes.get(&tag_value).unwrap().attribute_type);
+        },
+        _ => String::default()
+      }
+    }
+    None => {
+      let mut ret_value = String::default();
+      for (_el_name, el_content) in map {
+        ret_value.push_str(&search_enum_in_proto_structure(&el_content.contents, enum_name, tag_value));
+      }
+      return ret_value;
+    }
+  };
 }
 
 /*fn set_attribute_model_proto(attribute_name: String, model_proto: &mut ModelProto, value:) {
