@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-use std::num::ParseIntError;
 use crate::onnx_structure::ModelProto;
-use crate::read_proto::proto_structure::{KindOf, Proto, ProtoAttribute};
+use crate::read_proto::proto_structure::{KindOf, Proto};
 
 pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
     let onnx_bytes = std::fs::read("models/squeezenet1.0-8.onnx").expect("Failed to read file");
@@ -34,7 +33,6 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
         }
 
         /* Siccome le stringhe binarie hanno lunghezze diverse (tra 0 e 7) serve sapere a che posizione si trovano gli ultimi 3 bit */
-        // PER I BYTE CORRELATI, IL PROBLEMA NON SUSSISTE PERCHE VENGONO AGGIUNTI IN TESTA GLI 0 MANCANTI
         let partition_index = binary_string.len().saturating_sub(3);
 
         /* Get the last three bits */
@@ -50,10 +48,6 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
                 field_type = f_t;
             }
             None => panic!("ONNX SYNTAX ERROR")
-        }
-
-        if field_name == "raw_data" {
-            println!("CIAO");
         }
 
         if !is_simple_type(&field_type) {
@@ -87,17 +81,25 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
             value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
 
             let mut string_result = String::new();
-            for i in 1..=value {
-                match binary_string_to_ascii(format!("{:b}", onnx_bytes[counter + i as usize])) {
-                    Some(ascii_char) => string_result.push(ascii_char),
-                    None => println!("Conversione fallita."),
+            if field_name == "raw_data" {
+                let mut i = 1;
+                while i<=value{
+                    string_result.push_str(&f32::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize+1usize)], onnx_bytes[counter + (i as usize+2usize)], onnx_bytes[counter + (i as usize+3usize)]]).to_string());
+                    string_result.push_str(", ");
+                    i=i+4;
+                }
+            }else{
+                for i in 1..=value {
+                    match binary_string_to_ascii(format!("{:b}", onnx_bytes[counter + i as usize])) {
+                        Some(ascii_char) => string_result.push(ascii_char),
+                        None => println!("Conversione fallita."),
+                    }
                 }
             }
 
             println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
-
-            counter += value as usize;
             decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2 + number_of_concatenated_bytes); /* Uno per WT + FN, value per la lunghezza della stringa e 1 per il campo dimensione della stringa */
+            counter += value as usize;
         } else {
             if field_type == "float" {
                 let mut concat_part: String = String::new();
@@ -136,7 +138,6 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
                 decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2 + number_of_concatenated_bytes);
             }
         }
-
         counter += 1;
     }
 }
@@ -164,10 +165,10 @@ fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>,
             part = format!("{}", &part[1..]);
         }
 
-        //little endian concatenation of the inner bytes and drop of the msb 0s
+        //little endian concatenation of the inner bytes
         if i != 0 {
             concat_part = format!("{}{}", part, concat_part);
-            concat_part = format!("{:b}", u32::from_str_radix(&*concat_part, 2).unwrap());
+            //concat_part = format!("{:b}", u32::from_str_radix(&*concat_part, 2).unwrap());
         } else {
             concat_part = part;
         }
