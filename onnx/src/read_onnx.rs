@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::num::ParseIntError;
 use crate::onnx_structure::ModelProto;
 use crate::read_proto::proto_structure::{KindOf, Proto, ProtoAttribute};
 
@@ -12,9 +13,10 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
     let mut field_number: i32;
     let mut field_name: String = String::new();
     let mut field_type: String = String::new();
+    let mut number_of_concatenated_bytes: i32 = 0;
 
     let mut value: i32 = 0;
-    let mut length_object: i32;
+    let mut length_object_or_enum_field_numer: i32;
 
     let mut lifo_stack_length: Vec<i32> = Vec::new();
     lifo_stack_length.push(onnx_bytes.len() as i32);
@@ -24,10 +26,11 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
     while counter < onnx_bytes.len() {
         /* Byte[10] to binary */
         let mut binary_string = format!("{:b}", onnx_bytes[counter]);
+        number_of_concatenated_bytes = 0;
 
         /* It means that the binary number starts with bit 1. Dependant information contained between the following bytes */
         if binary_string.len() >= 8 {
-            binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes)
+            binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes)
         }
 
         /* Siccome le stringhe binarie hanno lunghezze diverse (tra 0 e 7) serve sapere a che posizione si trovano gli ultimi 3 bit */
@@ -49,33 +52,39 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
             None => panic!("ONNX SYNTAX ERROR")
         }
 
+        if field_name == "raw_data" {
+            println!("CIAO");
+        }
+
         if !is_simple_type(&field_type) {
-            decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2); /* Uno per il WT + FN e l'altro per la length*/
+            decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2 + number_of_concatenated_bytes); /* Uno per il WT + FN e l'altro per la length*/
             counter += 1;
 
-            lifo_stack_struct.push(field_type.clone());
             /* Byte to binary */
-            let mut length_binary = format!("{:b}", onnx_bytes[counter]);
+            let mut length_binary_or_enum_filed_number = format!("{:b}", onnx_bytes[counter]);
 
-            if length_binary.len() >= 8 {
-                length_binary = concat_bytes(length_binary, &mut counter, &onnx_bytes);
+            if length_binary_or_enum_filed_number.len() >= 8 {
+                length_binary_or_enum_filed_number = concat_bytes(length_binary_or_enum_filed_number, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes);
             }
 
-            length_object = u64::from_str_radix(&*length_binary, 2).unwrap() as i32;
-            lifo_stack_length.push(length_object);
-            let is_enum_with_type = search_enum_in_proto_structure(proto_structure, lifo_stack_struct.last().unwrap(), length_object);
+            length_object_or_enum_field_numer = u64::from_str_radix(&*length_binary_or_enum_filed_number, 2).unwrap() as i32;
+            let is_enum_with_type = search_enum_in_proto_structure(proto_structure, &field_type, length_object_or_enum_field_numer);
 
             if is_enum_with_type.is_empty() {
-              println!("({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len()-2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object, wire_type);
-            }else{
-              println!("({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len()-2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
+                lifo_stack_struct.push(field_type.clone());
+                lifo_stack_length.push(length_object_or_enum_field_numer);
+                println!("({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object_or_enum_field_numer, wire_type);
+            } else {
+                println!("({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
             }
-
         } else if wire_type == "LEN" {
             counter += 1;
             /* Byte to binary */
-            let value_binary = format!("{:b}", onnx_bytes[counter]);
-            value = u64::from_str_radix(&*value_binary, 2).unwrap() as i32;
+            binary_string = format!("{:b}", onnx_bytes[counter]);
+            if binary_string.len() >= 8 {
+                binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes)
+            }
+            value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
 
             let mut string_result = String::new();
             for i in 1..=value {
@@ -88,23 +97,51 @@ pub fn read_onnx_file(proto_structure: &HashMap<String, Proto>) {
             println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
 
             counter += value as usize;
-            decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2); /* Uno per WT + FN, value per la lunghezza della stringa e 1 per il campo dimensione della stringa */
+            decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2 + number_of_concatenated_bytes); /* Uno per WT + FN, value per la lunghezza della stringa e 1 per il campo dimensione della stringa */
         } else {
-            counter += 1;
-            /* Byte to binary */
-            let value_binary = format!("{:b}", onnx_bytes[counter]);
-            value = u64::from_str_radix(&*value_binary, 2).unwrap() as i32;
+            if field_type == "float" {
+                let mut concat_part: String = String::new();
 
-            println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
+                counter += 4;
 
-            decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2);
+                for n_byte in 0..4 {
+                    let formatted = format!("{:02X}", onnx_bytes[counter - n_byte]);
+                    concat_part = format!("{}{}", concat_part, formatted);
+                }
+
+                // Converti la rappresentazione esadecimale in un intero a 32 bit
+                let int_value = u32::from_str_radix(&*concat_part, 16).unwrap();
+
+                // Trasforma l'intero in un array di byte
+                let bytes: [u8; 4] = int_value.to_le_bytes();
+
+                // Utilizza il transmute per convertire l'array di byte in un numero float
+                let float_value: f32 = unsafe { std::mem::transmute(bytes) };
+
+                println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, float_value, field_type);
+
+                decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 5 + number_of_concatenated_bytes); //Il numero float è rappresentato su 4 byte
+            } else {
+                counter += 1;
+                /* Byte to binary */
+                /* It means that the binary number starts with bit 1. Dependant information contained between the following bytes */
+                binary_string = format!("{:b}", onnx_bytes[counter]);
+                if binary_string.len() >= 8 {
+                    binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes)
+                }
+                value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
+
+                println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
+
+                decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2 + number_of_concatenated_bytes);
+            }
         }
 
         counter += 1;
     }
 }
 
-fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>) -> String {
+fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>, number_bytes: &mut i32) -> String {
     let mut count_parts = 0;
     let mut concat_part: String = String::new();
 
@@ -113,6 +150,7 @@ fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>)
     while binary_string.len() >= 8 {
         count_parts += 1;
         *counter += 1;
+        *number_bytes += 1;
         binary_string = format!("{:b}", onnx_bytes[*counter]);
     }
     count_parts += 1;
@@ -255,27 +293,27 @@ fn get_wire_type(binary_number: &str) -> String {
 }
 
 
-fn search_enum_in_proto_structure(map: &HashMap<String, Proto>, enum_name: &str, tag_value: i32) -> String {
-  if map.is_empty(){
-    return String::default();
-  }
-  return match map.get(enum_name) {
-    Some(proto) => {
-      match proto.kind_of {
-        KindOf::Enum => {
-          return String::from(&proto.attributes.get(&tag_value).unwrap().attribute_type);
-        },
-        _ => String::default()
-      }
+fn search_enum_in_proto_structure(map: &HashMap<String, Proto>, enum_name: &String, tag_value: i32) -> String {
+    if map.is_empty() {
+        return String::default();
     }
-    None => {
-      let mut ret_value = String::default();
-      for (_el_name, el_content) in map {
-        ret_value.push_str(&search_enum_in_proto_structure(&el_content.contents, enum_name, tag_value));
-      }
-      return ret_value;
-    }
-  };
+    return match map.get(enum_name) {
+        Some(proto) => {
+            match proto.kind_of {
+                KindOf::Enum => {
+                    return String::from(&proto.attributes.get(&tag_value).unwrap().attribute_type);
+                }
+                _ => String::default()
+            }
+        }
+        None => {
+            let mut ret_value = String::default();
+            for (_el_name, el_content) in map {
+                ret_value.push_str(&search_enum_in_proto_structure(&el_content.contents, enum_name, tag_value));
+            }
+            return ret_value;
+        }
+    };
 }
 
 /*fn set_attribute_model_proto(attribute_name: String, model_proto: &mut ModelProto, value:) {
