@@ -19,25 +19,21 @@ TODO:
 
 */
 
-mod read_proto;
 pub mod onnx_structure;
-mod read_onnx;
 
+mod read_proto;
 use read_proto::create_struct_from_proto_file;
-use read_proto::proto_structure::*;
-use onnx_structure::ModelProto;
-use crate::read_onnx::read_onnx_file;
+
+mod read_onnx;
+use read_onnx::read_onnx_file;
 
 fn main() {
-  // Leggi il contenuto del file ONNX in un buffer
-  //let onnx_bytes = std::fs::read("models/squeezenet1.0-8.onnx").expect("Failed to read file");
-  //println!("{:?}", onnx_bytes);
-
-  let file_path = "../onnx.proto";
-  match create_struct_from_proto_file(file_path) {
+  let proto_path = "../onnx.proto";
+  let onnx_path = "models/squeezenet1.0-8.onnx";
+  match create_struct_from_proto_file(proto_path) {
     Ok(result) => {
       println!("{:?}", result);
-      read_onnx_file(&result);
+      read_onnx_file(onnx_path, &result);
     },
     Err(err) => {
       eprintln!("{}", err);

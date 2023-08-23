@@ -9,12 +9,12 @@ use crate::read_proto::proto_structure::ProtoAttribute;
 
 /*
 This function create a runtime structure which maps a .proto file content. This structure (i.e. a hashmap) will be used for parsing .onnx file.
-- It takes one parameter: the .proto file name.
+- It takes one parameter: the .proto file path.
 - It returns: a Result containing a hashmap or a string of error.
  */
-pub fn create_struct_from_proto_file(file: &str) -> Result<HashMap<String, Proto>, String> {
+pub fn create_struct_from_proto_file(proto_file_path: &str) -> Result<HashMap<String, Proto>, String> {
   //opening file in read mode
-  let file = File::open(file).expect("Failed to open and read file .proto");
+  let file = File::open(proto_file_path).expect("Failed to open and read file .proto");
   let reader = BufReader::new(file);
 
   //See proto_structure.rs -> Struct Proto explanation
