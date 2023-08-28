@@ -29,7 +29,7 @@ use read_onnx::read_onnx_file;
 
 fn main() {
   let proto_path = "../onnx.proto";
-  let onnx_path = "models/squeezenet1.0-8.onnx";
+  let onnx_path = "models/model.onnx";
   match create_struct_from_proto_file(proto_path) {
     Ok(result) => {
       println!("{:?}", result);

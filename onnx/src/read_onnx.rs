@@ -1,6 +1,7 @@
-use std::collections::HashMap;
-use crate::onnx_structure::ModelProto;
+use std::collections::{HashMap, LinkedList};
+use crate::onnx_structure::{GraphProto, ModelProto, NodeProto};
 use crate::read_proto::proto_structure::{KindOf, Proto};
+use crate::onnx_structure::Structure;
 
 /*
 This function allows the program to read a .onnx file byte per byte and, thanks to the proto_structure previously read, to generate a onnx runtime model.
@@ -28,7 +29,7 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
   let mut lifo_stack_struct: Vec<String> = Vec::new();
   lifo_stack_struct.push("modelproto".to_string());
 
-  let _model_proto = ModelProto::new();
+  let mut structs: HashMap<String, Box<dyn Structure>> = HashMap::new();
 
   while counter < onnx_bytes.len() {
     //converts from byte base[10] to binary
@@ -78,6 +79,9 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
       if is_enum_with_type.is_empty() { //new structure read from the onnx. Specifically a Message not a Enum
         lifo_stack_struct.push(field_type.clone());
         lifo_stack_length.push(length_object_or_enum_field_numer);
+
+        get_current_struct(field_type.as_str(), &mut structs);
+
         println!("({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object_or_enum_field_numer, wire_type);
       } else { //enum case. As explained above it doesn't need to be added to the runtime structures
         println!("({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
@@ -107,6 +111,11 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
           }
         }
       }
+
+      //_model_proto.dispatch(field_name.as_str(), None, Some(string_result.clone()));
+      let mut current = get_current_struct(lifo_stack_struct.last().unwrap(), &mut structs);
+      current.dispatch(field_name.as_str(), None, Some(string_result.clone()), None);
+
       println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
       //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + y Bytes (value) for the string/raw data just read
       decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2 + number_of_concatenated_bytes);
@@ -126,6 +135,9 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
         //transmuting the array into a float
         let float_value: f32 = unsafe { std::mem::transmute(bytes) };
 
+        /*let mut current = get_current_struct(lifo_stack_struct.last().unwrap(), &mut structs);
+        *current.dispatch(field_name.as_str(), None, Some(string_result));*/
+
         println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, float_value, field_type);
 
         //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + 4 Bytes (value) for the float representation
@@ -137,6 +149,10 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
           binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes)
         }
         value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
+
+        //_model_proto.dispatch(field_name.as_str(),Some(value), None);
+        let mut current = get_current_struct(lifo_stack_struct.last().unwrap(), &mut structs);
+        current.dispatch(field_name.as_str(), Some(value), None, None);
 
         println!("({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
 
@@ -204,11 +220,13 @@ This function allows to decrement the amount of bytes which remain to be read fo
     ~ vec_struct: the vector which contains the structures and their hierarchy read from the onnx
     ~ value_to_decrement: how much the length needs to be decreased
 */
-fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, value_to_decrement: i32) {
+fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, value_to_decrement: i32, hash_struct: &mut HashMap<String, Box<dyn Structure>>) {
   if vec_length.len() > 0 {
     for num in vec_length.iter_mut() { //decrease the correct structure length
       *num -= value_to_decrement;
     }
+
+    let mut position_to_include = vec_length.len();
 
     let mut zero_count = 0;
     for &num in vec_length.iter().rev() { //check for 0 length structures
@@ -216,6 +234,9 @@ fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, val
         break;
       }
       zero_count += 1;
+
+      include_struct(vec_struct[position_to_include].clone(), vec_struct[position_to_include - 1], hash_struct);
+      position_to_include -= 1;
     }
 
     if zero_count > 0 { //truncating the 0 length structures
@@ -347,4 +368,26 @@ fn search_enum_in_proto_structure(map: &HashMap<String, Proto>, enum_name: &Stri
       return ret_value;
     }
   };
+}
+
+fn get_current_struct<'a>(struct_name: &'a str, hash_structs: &'a mut HashMap<String, Box<dyn Structure>>) -> &'a mut Box<dyn Structure> {
+  if hash_structs.contains_key(struct_name) {
+    hash_structs.get_mut(struct_name).unwrap()
+  } else {
+    match struct_name {
+      "modelproto" => {
+        hash_structs.insert("modelproto".to_string(), Box::new(ModelProto::new()));
+        hash_structs.get_mut(struct_name).unwrap()
+      },
+      _ => panic!("{} not found", struct_name)
+    }
+  }
+}
+
+fn include_struct(from: String, to: String, hash_structs: &mut HashMap<String, Box<dyn Structure>>) {
+  let current_from = get_current_struct(from.as_str(), hash_structs);
+  hash_structs.remove(from.as_str());
+
+  let current_to = get_current_struct(to.as_str(), hash_structs);
+  current_to.include(from.as_str(), current_from);
 }

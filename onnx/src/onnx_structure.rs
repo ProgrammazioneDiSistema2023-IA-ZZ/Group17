@@ -22,6 +22,9 @@
 //! Generated file from `proto/onnx.proto`
 // Generated for lite runtime
 
+use std::ops::Deref;
+use crate::onnx_structure::type_proto::Tensor;
+
 /// Generated files are compatible only with the same version
 /// of protobuf runtime.
 const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_2_0;
@@ -96,6 +99,11 @@ impl<'a> ::std::default::Default for &'a AttributeProto {
   fn default() -> &'a AttributeProto {
     <AttributeProto as ::protobuf::Message>::default_instance()
   }
+}
+
+pub trait Structure {
+  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>);
+  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>);
 }
 
 impl AttributeProto {
@@ -905,6 +913,19 @@ impl<'a> ::std::default::Default for &'a NodeProto {
   }
 }
 
+impl Structure for NodeProto {
+  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
+    match method_name {
+      "name" => self.set_name(string_value.unwrap()),
+      _ => panic!("Dispatcher, method not found")
+    }
+  }
+
+  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
+
+  }
+}
+
 impl NodeProto {
   pub fn new() -> NodeProto {
     ::std::default::Default::default()
@@ -1452,6 +1473,19 @@ pub struct ModelProto {
 impl<'a> ::std::default::Default for &'a ModelProto {
   fn default() -> &'a ModelProto {
     <ModelProto as ::protobuf::Message>::default_instance()
+  }
+}
+
+impl Structure for ModelProto{
+  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
+    match method_name {
+      "ir_version" => self.set_ir_version(int_value.unwrap() as i64),
+      "producer_name" => self.set_producer_name(string_value.unwrap()),
+      _ => panic!("Dispatcher, method not found")
+    }
+  }
+
+  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
   }
 }
 
@@ -2200,6 +2234,24 @@ impl<'a> ::std::default::Default for &'a GraphProto {
   }
 }
 
+impl Structure for GraphProto{
+  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
+    match method_name {
+      "name" => self.set_name(string_value.unwrap()),
+      _ => panic!("Dispatcher, method not found")
+    }
+  }
+
+  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
+    match field_name {
+      "nodeproto" => {
+         self.node.push(element.as_ref().downcast_ref::<NodeProto>()); // 
+      },
+      _ => panic!("Include, method not found")
+    }
+  }
+}
+
 impl GraphProto {
   pub fn new() -> GraphProto {
     ::std::default::Default::default()
@@ -2533,6 +2585,18 @@ pub struct TensorProto {
 impl<'a> ::std::default::Default for &'a TensorProto {
   fn default() -> &'a TensorProto {
     <TensorProto as ::protobuf::Message>::default_instance()
+  }
+}
+
+impl Structure for TensorProto{
+  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
+    match method_name {
+      "name" => self.set_name(string_value.unwrap()),
+      _ => panic!("Dispatcher, method not found")
+    }
+  }
+
+  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
   }
 }
 
