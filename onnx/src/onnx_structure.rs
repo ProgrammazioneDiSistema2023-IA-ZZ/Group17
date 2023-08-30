@@ -20,14 +20,13 @@
 #![allow(unused_mut)]
 
 //! Generated file from `proto/onnx.proto`
+use crate::onnx_structure::attribute_proto::AttributeType;
+use num_traits::{AsPrimitive, Num};
+
 // Generated for lite runtime
-
-use std::ops::Deref;
-use crate::onnx_structure::type_proto::Tensor;
-
 /// Generated files are compatible only with the same version
 /// of protobuf runtime.
-const _PROTOBUF_VERSION_CHECK: () = ::protobuf::VERSION_3_2_0;
+const _PROTOBUF_VERSION_CHECK: () = protobuf::VERSION_3_2_0;
 
 ///  Attributes
 ///
@@ -41,16 +40,16 @@ pub struct AttributeProto {
   // message fields
   ///  The name field MUST be present for this version of the IR.
   // @@protoc_insertion_point(field:onnx.AttributeProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  if ref_attr_name is not empty, ref_attr_name is the attribute name in parent function.
   ///  In this case, this AttributeProto does not contain data, and it's a reference of attribute
   ///  in parent scope.
   ///  NOTE: This should ONLY be used in function (sub-graph). It's invalid to be used in main graph.
   // @@protoc_insertion_point(field:onnx.AttributeProto.ref_attr_name)
-  pub ref_attr_name: ::std::option::Option<::std::string::String>,
+  pub ref_attr_name: Option<String>,
   ///  A human-readable documentation for this attribute. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.AttributeProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   ///  The type field MUST be present for this version of the IR.
   ///  For 0.0.1 versions of the IR, this field was not defined, and
   ///  implementations needed to use has_field heuristics to determine
@@ -58,61 +57,135 @@ pub struct AttributeProto {
   ///  field MUST be set and match the f|i|s|t|... field in use.  This
   ///  change was made to accommodate proto3 implementations.
   // @@protoc_insertion_point(field:onnx.AttributeProto.type)
-  pub type_: ::std::option::Option<::protobuf::EnumOrUnknown<attribute_proto::AttributeType>>,
+  pub type_: Option<protobuf::EnumOrUnknown<AttributeType>>,
   ///  Exactly ONE of the following fields must be present for this version of the IR
   // @@protoc_insertion_point(field:onnx.AttributeProto.f)
-  pub f: ::std::option::Option<f32>,
+  pub f: Option<f32>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.i)
-  pub i: ::std::option::Option<i64>,
+  pub i: Option<i64>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.s)
-  pub s: ::std::option::Option<::std::vec::Vec<u8>>,
+  pub s: Option<Vec<u8>>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.t)
-  pub t: ::protobuf::MessageField<TensorProto>,
+  pub t: protobuf::MessageField<TensorProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.g)
-  pub g: ::protobuf::MessageField<GraphProto>,
+  pub g: protobuf::MessageField<GraphProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.sparse_tensor)
-  pub sparse_tensor: ::protobuf::MessageField<SparseTensorProto>,
+  pub sparse_tensor: protobuf::MessageField<SparseTensorProto>,
   ///  Do not use field below, it's deprecated.
   ///  optional ValueProto v = 12;         // value - subsumes everything but graph
   // @@protoc_insertion_point(field:onnx.AttributeProto.tp)
-  pub tp: ::protobuf::MessageField<TypeProto>,
+  pub tp: protobuf::MessageField<TypeProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.floats)
-  pub floats: ::std::vec::Vec<f32>,
+  pub floats: Vec<f32>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.ints)
-  pub ints: ::std::vec::Vec<i64>,
+  pub ints: Vec<i64>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.strings)
-  pub strings: ::std::vec::Vec<::std::vec::Vec<u8>>,
+  pub strings: Vec<Vec<u8>>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.tensors)
-  pub tensors: ::std::vec::Vec<TensorProto>,
+  pub tensors: Vec<TensorProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.graphs)
-  pub graphs: ::std::vec::Vec<GraphProto>,
+  pub graphs: Vec<GraphProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.sparse_tensors)
-  pub sparse_tensors: ::std::vec::Vec<SparseTensorProto>,
+  pub sparse_tensors: Vec<SparseTensorProto>,
   // @@protoc_insertion_point(field:onnx.AttributeProto.type_protos)
-  pub type_protos: ::std::vec::Vec<TypeProto>,
+  pub type_protos: Vec<TypeProto>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.AttributeProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a AttributeProto {
+impl<'a> Default for &'a AttributeProto {
   fn default() -> &'a AttributeProto {
-    <AttributeProto as ::protobuf::Message>::default_instance()
+    <AttributeProto as protobuf::Message>::default_instance()
   }
-}
-
-pub trait Structure {
-  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>);
-  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>);
 }
 
 impl AttributeProto {
   pub fn new() -> AttributeProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of attribute_proto
+      match attribute_name {
+        "name" => self.set_name(attribute_value.to_string()),
+        "ref_attr_name" => self.set_ref_attr_name(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "f" => self.set_f(attribute_value.into()),
+        "i" => self.set_i(attribute_value.into()),
+        "s" => self.set_s(Vec::from(attribute_value.to_string())),
+        "floats" => self.floats.push(attribute_value.into()),
+        "ints" => self.ints.push(attribute_value.into()),
+        "strings" => self.strings.push(Vec::from(attribute_value.to_string())),
+        "special_fields" => {},
+        _ => panic!("ATTRIBUTEPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "attributetype" => { },//self.type_.dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "tensorproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            match attribute_name{
+              "tensors" => self.tensors.push(TensorProto::default()),
+              _ => panic!("ATTTRIBUTEPROTO -> tensorproto: attribute name Add cannot be done; it does not match any TensorProto structure: {}", attribute_name)
+            }
+          } else {
+            match attribute_name{
+              "t" => self.t.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "tensors" => self.tensors.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("ATTTRIBUTEPROTO -> tensorproto: attribute name Dispatch cannot be done; it does not match any TensorProto structure: {}", attribute_name)
+            }
+          }
+        },
+        "graphproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            match attribute_name{
+              "graphs" => self.graphs.push(GraphProto::default()),
+              _ => panic!("ATTTRIBUTEPROTO -> graphproto: attribute name Add cannot be done; it does not match any GraphProto structure: {}", attribute_name)
+            }
+          } else {
+            match attribute_name{
+              "g" => self.g.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "graphs" => self.graphs.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("ATTTRIBUTEPROTO -> graphproto: attribute name Dispatch cannot be done; it does not match any GraphProto structure: {}", attribute_name)
+            }
+          }
+        },
+        "sparsetensorproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            match attribute_name{
+              "sparse_tensors" => self.sparse_tensors.push(SparseTensorProto::default()),
+              _ => panic!("ATTTRIBUTEPROTO -> sparsetensorproto: attribute name Add cannot be done; it does not match any SparseTensorProto structure: {}", attribute_name)
+            }
+          } else {
+            match attribute_name{
+              "sparse_tensor" => self.sparse_tensor.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "sparse_tensors" => self.sparse_tensors.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("ATTTRIBUTEPROTO -> sparsetensorproto: attribute name Dispatch cannot be done; it does not match any SparseTensorProto structure: {}", attribute_name)
+            }
+          }
+        },
+        "typeproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            match attribute_name{
+              "type_protos" => self.type_protos.push(TypeProto::default()),
+              _ => panic!("ATTTRIBUTEPROTO -> typeproto: attribute name Add cannot be done; it does not match any TypeProto structure: {}", attribute_name)
+            }
+          } else {
+            match attribute_name{
+              "tp" => self.tp.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "type_protos" => self.type_protos.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("ATTTRIBUTEPROTO -> typeproto: attribute name Dispatch cannot be done; it does not match any TypeProto structure: {}", attribute_name)
+            }
+          }
+        },
+        _ => panic!("ATTRIBUTEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional string name = 1;
-
   pub fn name(&self) -> &str {
     match self.name.as_ref() {
       Some(v) => v,
@@ -121,7 +194,7 @@ impl AttributeProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -129,22 +202,22 @@ impl AttributeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string ref_attr_name = 21;
@@ -157,7 +230,7 @@ impl AttributeProto {
   }
 
   pub fn clear_ref_attr_name(&mut self) {
-    self.ref_attr_name = ::std::option::Option::None;
+    self.ref_attr_name = None;
   }
 
   pub fn has_ref_attr_name(&self) -> bool {
@@ -165,22 +238,22 @@ impl AttributeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_ref_attr_name(&mut self, v: ::std::string::String) {
-    self.ref_attr_name = ::std::option::Option::Some(v);
+  pub fn set_ref_attr_name(&mut self, v: String) {
+    self.ref_attr_name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_ref_attr_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_ref_attr_name(&mut self) -> &mut String {
     if self.ref_attr_name.is_none() {
-      self.ref_attr_name = ::std::option::Option::Some(::std::string::String::new());
+      self.ref_attr_name = Some(String::new());
     }
     self.ref_attr_name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_ref_attr_name(&mut self) -> ::std::string::String {
-    self.ref_attr_name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_ref_attr_name(&mut self) -> String {
+    self.ref_attr_name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 13;
@@ -193,7 +266,7 @@ impl AttributeProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -201,22 +274,22 @@ impl AttributeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 
   // optional .onnx.AttributeProto.AttributeType type = 20;
@@ -229,7 +302,7 @@ impl AttributeProto {
   }
 
   pub fn clear_type_(&mut self) {
-    self.type_ = ::std::option::Option::None;
+    self.type_ = None;
   }
 
   pub fn has_type(&self) -> bool {
@@ -238,7 +311,7 @@ impl AttributeProto {
 
   // Param is passed by value, moved
   pub fn set_type(&mut self, v: attribute_proto::AttributeType) {
-    self.type_ = ::std::option::Option::Some(::protobuf::EnumOrUnknown::new(v));
+    self.type_ = Some(protobuf::EnumOrUnknown::new(v));
   }
 
   // optional float f = 2;
@@ -248,7 +321,7 @@ impl AttributeProto {
   }
 
   pub fn clear_f(&mut self) {
-    self.f = ::std::option::Option::None;
+    self.f = None;
   }
 
   pub fn has_f(&self) -> bool {
@@ -257,7 +330,7 @@ impl AttributeProto {
 
   // Param is passed by value, moved
   pub fn set_f(&mut self, v: f32) {
-    self.f = ::std::option::Option::Some(v);
+    self.f = Some(v);
   }
 
   // optional int64 i = 3;
@@ -267,7 +340,7 @@ impl AttributeProto {
   }
 
   pub fn clear_i(&mut self) {
-    self.i = ::std::option::Option::None;
+    self.i = None;
   }
 
   pub fn has_i(&self) -> bool {
@@ -276,7 +349,7 @@ impl AttributeProto {
 
   // Param is passed by value, moved
   pub fn set_i(&mut self, v: i64) {
-    self.i = ::std::option::Option::Some(v);
+    self.i = Some(v);
   }
 
   // optional bytes s = 4;
@@ -289,7 +362,7 @@ impl AttributeProto {
   }
 
   pub fn clear_s(&mut self) {
-    self.s = ::std::option::Option::None;
+    self.s = None;
   }
 
   pub fn has_s(&self) -> bool {
@@ -297,67 +370,67 @@ impl AttributeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_s(&mut self, v: ::std::vec::Vec<u8>) {
-    self.s = ::std::option::Option::Some(v);
+  pub fn set_s(&mut self, v: Vec<u8>) {
+    self.s = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_s(&mut self) -> &mut ::std::vec::Vec<u8> {
+  pub fn mut_s(&mut self) -> &mut Vec<u8> {
     if self.s.is_none() {
-      self.s = ::std::option::Option::Some(::std::vec::Vec::new());
+      self.s = Some(Vec::new());
     }
     self.s.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_s(&mut self) -> ::std::vec::Vec<u8> {
-    self.s.take().unwrap_or_else(|| ::std::vec::Vec::new())
+  pub fn take_s(&mut self) -> Vec<u8> {
+    self.s.take().unwrap_or_else(|| Vec::new())
   }
 }
 
-impl ::protobuf::Message for AttributeProto {
+impl protobuf::Message for AttributeProto {
   const NAME: &'static str = "AttributeProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         170 => {
-          self.ref_attr_name = ::std::option::Option::Some(is.read_string()?);
+          self.ref_attr_name = Some(is.read_string()?);
         },
         106 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         160 => {
-          self.type_ = ::std::option::Option::Some(is.read_enum_or_unknown()?);
+          self.type_ = Some(is.read_enum_or_unknown()?);
         },
         21 => {
-          self.f = ::std::option::Option::Some(is.read_float()?);
+          self.f = Some(is.read_float()?);
         },
         24 => {
-          self.i = ::std::option::Option::Some(is.read_int64()?);
+          self.i = Some(is.read_int64()?);
         },
         34 => {
-          self.s = ::std::option::Option::Some(is.read_bytes()?);
+          self.s = Some(is.read_bytes()?);
         },
         42 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.t)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.t)?;
         },
         50 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.g)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.g)?;
         },
         178 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.sparse_tensor)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.sparse_tensor)?;
         },
         114 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.tp)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.tp)?;
         },
         58 => {
           is.read_repeated_packed_float_into(&mut self.floats)?;
@@ -387,83 +460,14 @@ impl ::protobuf::Message for AttributeProto {
           self.type_protos.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
-    }
-    if let Some(v) = self.ref_attr_name.as_ref() {
-      my_size += ::protobuf::rt::string_size(21, &v);
-    }
-    if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(13, &v);
-    }
-    if let Some(v) = self.type_ {
-      my_size += ::protobuf::rt::int32_size(20, v.value());
-    }
-    if let Some(v) = self.f {
-      my_size += 1 + 4;
-    }
-    if let Some(v) = self.i {
-      my_size += ::protobuf::rt::int64_size(3, v);
-    }
-    if let Some(v) = self.s.as_ref() {
-      my_size += ::protobuf::rt::bytes_size(4, &v);
-    }
-    if let Some(v) = self.t.as_ref() {
-      let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    if let Some(v) = self.g.as_ref() {
-      let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    if let Some(v) = self.sparse_tensor.as_ref() {
-      let len = v.compute_size();
-      my_size += 2 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    if let Some(v) = self.tp.as_ref() {
-      let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    my_size += 5 * self.floats.len() as u64;
-    for value in &self.ints {
-      my_size += ::protobuf::rt::int64_size(8, *value);
-    };
-    for value in &self.strings {
-      my_size += ::protobuf::rt::bytes_size(9, &value);
-    };
-    for value in &self.tensors {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.graphs {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.sparse_tensors {
-      let len = value.compute_size();
-      my_size += 2 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.type_protos {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     if let Some(v) = self.name.as_ref() {
       os.write_string(1, v)?;
     }
@@ -474,7 +478,7 @@ impl ::protobuf::Message for AttributeProto {
       os.write_string(13, v)?;
     }
     if let Some(v) = self.type_ {
-      os.write_enum(20, ::protobuf::EnumOrUnknown::value(&v))?;
+      os.write_enum(20, protobuf::EnumOrUnknown::value(&v))?;
     }
     if let Some(v) = self.f {
       os.write_float(2, v)?;
@@ -486,16 +490,16 @@ impl ::protobuf::Message for AttributeProto {
       os.write_bytes(4, v)?;
     }
     if let Some(v) = self.t.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
     }
     if let Some(v) = self.g.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(6, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(6, v, os)?;
     }
     if let Some(v) = self.sparse_tensor.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(22, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(22, v, os)?;
     }
     if let Some(v) = self.tp.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
     }
     for v in &self.floats {
       os.write_float(7, *v)?;
@@ -507,26 +511,95 @@ impl ::protobuf::Message for AttributeProto {
       os.write_bytes(9, &v)?;
     };
     for v in &self.tensors {
-      ::protobuf::rt::write_message_field_with_cached_size(10, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(10, v, os)?;
     };
     for v in &self.graphs {
-      ::protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
     };
     for v in &self.sparse_tensors {
-      ::protobuf::rt::write_message_field_with_cached_size(23, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(23, v, os)?;
     };
     for v in &self.type_protos {
-      ::protobuf::rt::write_message_field_with_cached_size(15, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(15, v, os)?;
     };
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    if let Some(v) = self.name.as_ref() {
+      my_size += protobuf::rt::string_size(1, &v);
+    }
+    if let Some(v) = self.ref_attr_name.as_ref() {
+      my_size += protobuf::rt::string_size(21, &v);
+    }
+    if let Some(v) = self.doc_string.as_ref() {
+      my_size += protobuf::rt::string_size(13, &v);
+    }
+    if let Some(v) = self.type_ {
+      my_size += protobuf::rt::int32_size(20, v.value());
+    }
+    if let Some(v) = self.f {
+      my_size += 1 + 4;
+    }
+    if let Some(v) = self.i {
+      my_size += protobuf::rt::int64_size(3, v);
+    }
+    if let Some(v) = self.s.as_ref() {
+      my_size += protobuf::rt::bytes_size(4, &v);
+    }
+    if let Some(v) = self.t.as_ref() {
+      let len = v.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    if let Some(v) = self.g.as_ref() {
+      let len = v.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    if let Some(v) = self.sparse_tensor.as_ref() {
+      let len = v.compute_size();
+      my_size += 2 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    if let Some(v) = self.tp.as_ref() {
+      let len = v.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    my_size += 5 * self.floats.len() as u64;
+    for value in &self.ints {
+      my_size += protobuf::rt::int64_size(8, *value);
+    };
+    for value in &self.strings {
+      my_size += protobuf::rt::bytes_size(9, &value);
+    };
+    for value in &self.tensors {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.graphs {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.sparse_tensors {
+      let len = value.compute_size();
+      my_size += 2 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.type_protos {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -535,13 +608,13 @@ impl ::protobuf::Message for AttributeProto {
   }
 
   fn clear(&mut self) {
-    self.name = ::std::option::Option::None;
-    self.ref_attr_name = ::std::option::Option::None;
-    self.doc_string = ::std::option::Option::None;
-    self.type_ = ::std::option::Option::None;
-    self.f = ::std::option::Option::None;
-    self.i = ::std::option::Option::None;
-    self.s = ::std::option::Option::None;
+    self.name = None;
+    self.ref_attr_name = None;
+    self.doc_string = None;
+    self.type_ = None;
+    self.f = None;
+    self.i = None;
+    self.s = None;
     self.t.clear();
     self.g.clear();
     self.sparse_tensor.clear();
@@ -558,25 +631,25 @@ impl ::protobuf::Message for AttributeProto {
 
   fn default_instance() -> &'static AttributeProto {
     static instance: AttributeProto = AttributeProto {
-      name: ::std::option::Option::None,
-      ref_attr_name: ::std::option::Option::None,
-      doc_string: ::std::option::Option::None,
-      type_: ::std::option::Option::None,
-      f: ::std::option::Option::None,
-      i: ::std::option::Option::None,
-      s: ::std::option::Option::None,
-      t: ::protobuf::MessageField::none(),
-      g: ::protobuf::MessageField::none(),
-      sparse_tensor: ::protobuf::MessageField::none(),
-      tp: ::protobuf::MessageField::none(),
-      floats: ::std::vec::Vec::new(),
-      ints: ::std::vec::Vec::new(),
-      strings: ::std::vec::Vec::new(),
-      tensors: ::std::vec::Vec::new(),
-      graphs: ::std::vec::Vec::new(),
-      sparse_tensors: ::std::vec::Vec::new(),
-      type_protos: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      name: None,
+      ref_attr_name: None,
+      doc_string: None,
+      type_: None,
+      f: None,
+      i: None,
+      s: None,
+      t: protobuf::MessageField::none(),
+      g: protobuf::MessageField::none(),
+      sparse_tensor: protobuf::MessageField::none(),
+      tp: protobuf::MessageField::none(),
+      floats: Vec::new(),
+      ints: Vec::new(),
+      strings: Vec::new(),
+      tensors: Vec::new(),
+      graphs: Vec::new(),
+      sparse_tensors: Vec::new(),
+      type_protos: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -621,31 +694,31 @@ pub mod attribute_proto {
     TYPE_PROTOS = 14,
   }
 
-  impl ::protobuf::Enum for AttributeType {
+  impl protobuf::Enum for AttributeType {
     const NAME: &'static str = "AttributeType";
 
     fn value(&self) -> i32 {
       *self as i32
     }
 
-    fn from_i32(value: i32) -> ::std::option::Option<AttributeType> {
+    fn from_i32(value: i32) -> Option<AttributeType> {
       match value {
-        0 => ::std::option::Option::Some(AttributeType::UNDEFINED),
-        1 => ::std::option::Option::Some(AttributeType::FLOAT),
-        2 => ::std::option::Option::Some(AttributeType::INT),
-        3 => ::std::option::Option::Some(AttributeType::STRING),
-        4 => ::std::option::Option::Some(AttributeType::TENSOR),
-        5 => ::std::option::Option::Some(AttributeType::GRAPH),
-        11 => ::std::option::Option::Some(AttributeType::SPARSE_TENSOR),
-        13 => ::std::option::Option::Some(AttributeType::TYPE_PROTO),
-        6 => ::std::option::Option::Some(AttributeType::FLOATS),
-        7 => ::std::option::Option::Some(AttributeType::INTS),
-        8 => ::std::option::Option::Some(AttributeType::STRINGS),
-        9 => ::std::option::Option::Some(AttributeType::TENSORS),
-        10 => ::std::option::Option::Some(AttributeType::GRAPHS),
-        12 => ::std::option::Option::Some(AttributeType::SPARSE_TENSORS),
-        14 => ::std::option::Option::Some(AttributeType::TYPE_PROTOS),
-        _ => ::std::option::Option::None
+        0 => Some(AttributeType::UNDEFINED),
+        1 => Some(AttributeType::FLOAT),
+        2 => Some(AttributeType::INT),
+        3 => Some(AttributeType::STRING),
+        4 => Some(AttributeType::TENSOR),
+        5 => Some(AttributeType::GRAPH),
+        11 => Some(AttributeType::SPARSE_TENSOR),
+        13 => Some(AttributeType::TYPE_PROTO),
+        6 => Some(AttributeType::FLOATS),
+        7 => Some(AttributeType::INTS),
+        8 => Some(AttributeType::STRINGS),
+        9 => Some(AttributeType::TENSORS),
+        10 => Some(AttributeType::GRAPHS),
+        12 => Some(AttributeType::SPARSE_TENSORS),
+        14 => Some(AttributeType::TYPE_PROTOS),
+        _ => None
       }
     }
 
@@ -668,7 +741,7 @@ pub mod attribute_proto {
     ];
   }
 
-  impl ::std::default::Default for AttributeType {
+  impl Default for AttributeType {
     fn default() -> Self {
       AttributeType::UNDEFINED
     }
@@ -684,32 +757,48 @@ pub struct ValueInfoProto {
   // message fields
   ///  This field MUST be present in this version of the IR.
   // @@protoc_insertion_point(field:onnx.ValueInfoProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  This field MUST be present in this version of the IR for
   ///  inputs and outputs of the top-level graph.
   // @@protoc_insertion_point(field:onnx.ValueInfoProto.type)
-  pub type_: ::protobuf::MessageField<TypeProto>,
+  pub type_: protobuf::MessageField<TypeProto>,
   ///  A human-readable documentation for this value. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.ValueInfoProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.ValueInfoProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a ValueInfoProto {
+impl<'a> Default for &'a ValueInfoProto {
   fn default() -> &'a ValueInfoProto {
-    <ValueInfoProto as ::protobuf::Message>::default_instance()
+    <ValueInfoProto as protobuf::Message>::default_instance()
   }
 }
 
 impl ValueInfoProto {
   pub fn new() -> ValueInfoProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of value_info_proto
+      match attribute_name {
+        "name" => self.set_name(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("VALUEINFOPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "typeproto" => self.type_.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        _ => panic!("VALUEINFOPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional string name = 1;
-
   pub fn name(&self) -> &str {
     match self.name.as_ref() {
       Some(v) => v,
@@ -718,7 +807,7 @@ impl ValueInfoProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -726,22 +815,22 @@ impl ValueInfoProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 3;
@@ -754,7 +843,7 @@ impl ValueInfoProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -762,50 +851,64 @@ impl ValueInfoProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for ValueInfoProto {
+impl protobuf::Message for ValueInfoProto {
   const NAME: &'static str = "ValueInfoProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         18 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.type_)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.type_)?;
         },
         26 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    if let Some(v) = self.name.as_ref() {
+      os.write_string(1, v)?;
+    }
+    if let Some(v) = self.type_.as_ref() {
+      protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+    }
+    if let Some(v) = self.doc_string.as_ref() {
+      os.write_string(3, v)?;
+    }
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -813,39 +916,25 @@ impl ::protobuf::Message for ValueInfoProto {
   fn compute_size(&self) -> u64 {
     let mut my_size = 0;
     if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
+      my_size += protobuf::rt::string_size(1, &v);
     }
     if let Some(v) = self.type_.as_ref() {
       let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     }
     if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(3, &v);
+      my_size += protobuf::rt::string_size(3, &v);
     }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    if let Some(v) = self.name.as_ref() {
-      os.write_string(1, v)?;
-    }
-    if let Some(v) = self.type_.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-    }
-    if let Some(v) = self.doc_string.as_ref() {
-      os.write_string(3, v)?;
-    }
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -854,18 +943,18 @@ impl ::protobuf::Message for ValueInfoProto {
   }
 
   fn clear(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
     self.type_.clear();
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static ValueInfoProto {
     static instance: ValueInfoProto = ValueInfoProto {
-      name: ::std::option::Option::None,
-      type_: ::protobuf::MessageField::none(),
-      doc_string: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      name: None,
+      type_: protobuf::MessageField::none(),
+      doc_string: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -883,56 +972,69 @@ impl ::protobuf::Message for ValueInfoProto {
 pub struct NodeProto {
   // message fields
   // @@protoc_insertion_point(field:onnx.NodeProto.input)
-  pub input: ::std::vec::Vec<::std::string::String>,
+  pub input: Vec<String>,
   // @@protoc_insertion_point(field:onnx.NodeProto.output)
-  pub output: ::std::vec::Vec<::std::string::String>,
+  pub output: Vec<String>,
   ///  An optional identifier for this node in a graph.
   ///  This field MAY be absent in ths version of the IR.
   // @@protoc_insertion_point(field:onnx.NodeProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  The symbolic identifier of the Operator to execute.
   // @@protoc_insertion_point(field:onnx.NodeProto.op_type)
-  pub op_type: ::std::option::Option<::std::string::String>,
+  pub op_type: Option<String>,
   ///  The domain of the OperatorSet that specifies the operator named by op_type.
   // @@protoc_insertion_point(field:onnx.NodeProto.domain)
-  pub domain: ::std::option::Option<::std::string::String>,
+  pub domain: Option<String>,
   ///  Additional named attributes.
   // @@protoc_insertion_point(field:onnx.NodeProto.attribute)
-  pub attribute: ::std::vec::Vec<AttributeProto>,
+  pub attribute: Vec<AttributeProto>,
   ///  A human-readable documentation for this node. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.NodeProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.NodeProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a NodeProto {
+impl<'a> Default for &'a NodeProto {
   fn default() -> &'a NodeProto {
-    <NodeProto as ::protobuf::Message>::default_instance()
-  }
-}
-
-impl Structure for NodeProto {
-  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
-    match method_name {
-      "name" => self.set_name(string_value.unwrap()),
-      _ => panic!("Dispatcher, method not found")
-    }
-  }
-
-  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
-
+    <NodeProto as protobuf::Message>::default_instance()
   }
 }
 
 impl NodeProto {
   pub fn new() -> NodeProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of node_proto
+      match attribute_name {
+        "input" => self.input.push(attribute_value.to_string()),
+        "output" => self.output.push(attribute_value.to_string()),
+        "name" => self.set_name(attribute_value.to_string()),
+        "op_type" => self.set_op_type(attribute_value.to_string()),
+        "domain" => self.set_domain(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("NODEPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "attributeproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.attribute.push(AttributeProto::default());
+          } else {
+            self.attribute.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        }
+        _ => panic!("NODEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional string name = 3;
-
   pub fn name(&self) -> &str {
     match self.name.as_ref() {
       Some(v) => v,
@@ -941,7 +1043,7 @@ impl NodeProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -949,22 +1051,22 @@ impl NodeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string op_type = 4;
@@ -977,7 +1079,7 @@ impl NodeProto {
   }
 
   pub fn clear_op_type(&mut self) {
-    self.op_type = ::std::option::Option::None;
+    self.op_type = None;
   }
 
   pub fn has_op_type(&self) -> bool {
@@ -985,22 +1087,22 @@ impl NodeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_op_type(&mut self, v: ::std::string::String) {
-    self.op_type = ::std::option::Option::Some(v);
+  pub fn set_op_type(&mut self, v: String) {
+    self.op_type = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_op_type(&mut self) -> &mut ::std::string::String {
+  pub fn mut_op_type(&mut self) -> &mut String {
     if self.op_type.is_none() {
-      self.op_type = ::std::option::Option::Some(::std::string::String::new());
+      self.op_type = Some(String::new());
     }
     self.op_type.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_op_type(&mut self) -> ::std::string::String {
-    self.op_type.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_op_type(&mut self) -> String {
+    self.op_type.take().unwrap_or_else(|| String::new())
   }
 
   // optional string domain = 7;
@@ -1013,7 +1115,7 @@ impl NodeProto {
   }
 
   pub fn clear_domain(&mut self) {
-    self.domain = ::std::option::Option::None;
+    self.domain = None;
   }
 
   pub fn has_domain(&self) -> bool {
@@ -1021,22 +1123,22 @@ impl NodeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_domain(&mut self, v: ::std::string::String) {
-    self.domain = ::std::option::Option::Some(v);
+  pub fn set_domain(&mut self, v: String) {
+    self.domain = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_domain(&mut self) -> &mut ::std::string::String {
+  pub fn mut_domain(&mut self) -> &mut String {
     if self.domain.is_none() {
-      self.domain = ::std::option::Option::Some(::std::string::String::new());
+      self.domain = Some(String::new());
     }
     self.domain.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_domain(&mut self) -> ::std::string::String {
-    self.domain.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_domain(&mut self) -> String {
+    self.domain.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 6;
@@ -1049,7 +1151,7 @@ impl NodeProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -1057,33 +1159,33 @@ impl NodeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for NodeProto {
+impl protobuf::Message for NodeProto {
   const NAME: &'static str = "NodeProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
@@ -1093,60 +1195,29 @@ impl ::protobuf::Message for NodeProto {
           self.output.push(is.read_string()?);
         },
         26 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         34 => {
-          self.op_type = ::std::option::Option::Some(is.read_string()?);
+          self.op_type = Some(is.read_string()?);
         },
         58 => {
-          self.domain = ::std::option::Option::Some(is.read_string()?);
+          self.domain = Some(is.read_string()?);
         },
         42 => {
           self.attribute.push(is.read_message()?);
         },
         50 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    for value in &self.input {
-      my_size += ::protobuf::rt::string_size(1, &value);
-    };
-    for value in &self.output {
-      my_size += ::protobuf::rt::string_size(2, &value);
-    };
-    if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(3, &v);
-    }
-    if let Some(v) = self.op_type.as_ref() {
-      my_size += ::protobuf::rt::string_size(4, &v);
-    }
-    if let Some(v) = self.domain.as_ref() {
-      my_size += ::protobuf::rt::string_size(7, &v);
-    }
-    for value in &self.attribute {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(6, &v);
-    }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     for v in &self.input {
       os.write_string(1, &v)?;
     };
@@ -1163,20 +1234,51 @@ impl ::protobuf::Message for NodeProto {
       os.write_string(7, v)?;
     }
     for v in &self.attribute {
-      ::protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
     };
     if let Some(v) = self.doc_string.as_ref() {
       os.write_string(6, v)?;
     }
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    for value in &self.input {
+      my_size += protobuf::rt::string_size(1, &value);
+    };
+    for value in &self.output {
+      my_size += protobuf::rt::string_size(2, &value);
+    };
+    if let Some(v) = self.name.as_ref() {
+      my_size += protobuf::rt::string_size(3, &v);
+    }
+    if let Some(v) = self.op_type.as_ref() {
+      my_size += protobuf::rt::string_size(4, &v);
+    }
+    if let Some(v) = self.domain.as_ref() {
+      my_size += protobuf::rt::string_size(7, &v);
+    }
+    for value in &self.attribute {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    if let Some(v) = self.doc_string.as_ref() {
+      my_size += protobuf::rt::string_size(6, &v);
+    }
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -1187,24 +1289,24 @@ impl ::protobuf::Message for NodeProto {
   fn clear(&mut self) {
     self.input.clear();
     self.output.clear();
-    self.name = ::std::option::Option::None;
-    self.op_type = ::std::option::Option::None;
-    self.domain = ::std::option::Option::None;
+    self.name = None;
+    self.op_type = None;
+    self.domain = None;
     self.attribute.clear();
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static NodeProto {
     static instance: NodeProto = NodeProto {
-      input: ::std::vec::Vec::new(),
-      output: ::std::vec::Vec::new(),
-      name: ::std::option::Option::None,
-      op_type: ::std::option::Option::None,
-      domain: ::std::option::Option::None,
-      attribute: ::std::vec::Vec::new(),
-      doc_string: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      input: Vec::new(),
+      output: Vec::new(),
+      name: None,
+      op_type: None,
+      domain: None,
+      attribute: Vec::new(),
+      doc_string: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -1247,9 +1349,9 @@ pub struct TrainingInfoProto {
   ///  By default, this field is an empty graph and its evaluation does not
   ///  produce any output. Thus, no initializer would be changed by default.
   // @@protoc_insertion_point(field:onnx.TrainingInfoProto.initialization)
-  pub initialization: ::protobuf::MessageField<GraphProto>,
+  pub initialization: protobuf::MessageField<GraphProto>,
   // @@protoc_insertion_point(field:onnx.TrainingInfoProto.algorithm)
-  pub algorithm: ::protobuf::MessageField<GraphProto>,
+  pub algorithm: protobuf::MessageField<GraphProto>,
   ///  This field specifies the bindings from the outputs of "initialization" to
   ///  some initializers in "ModelProto.graph.initializer" and
   ///  the "algorithm.initializer" in the same TrainingInfoProto.
@@ -1258,41 +1360,77 @@ pub struct TrainingInfoProto {
   ///  By default, this field is empty and no initializer would be changed
   ///  by the execution of "initialization".
   // @@protoc_insertion_point(field:onnx.TrainingInfoProto.initialization_binding)
-  pub initialization_binding: ::std::vec::Vec<StringStringEntryProto>,
+  pub initialization_binding: Vec<StringStringEntryProto>,
   // @@protoc_insertion_point(field:onnx.TrainingInfoProto.update_binding)
-  pub update_binding: ::std::vec::Vec<StringStringEntryProto>,
+  pub update_binding: Vec<StringStringEntryProto>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.TrainingInfoProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a TrainingInfoProto {
+impl<'a> Default for &'a TrainingInfoProto {
   fn default() -> &'a TrainingInfoProto {
-    <TrainingInfoProto as ::protobuf::Message>::default_instance()
+    <TrainingInfoProto as protobuf::Message>::default_instance()
   }
 }
 
 impl TrainingInfoProto {
   pub fn new() -> TrainingInfoProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of training_info_proto
+      match attribute_name {
+        "special_fields" => {},
+        _ => panic!("TRAININGINFOPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else{ //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str(){
+        "graphproto" => {
+          match attribute_name{
+            "initialization" => self.initialization.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            "algorithm" => self.algorithm.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            _ => panic!("TRAININGINFOPROTO -> graphproto: attribute name not found!: {}", attribute_name)
+          }
+        },
+        "stringstringentryproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            match attribute_name{
+              "initialization_binding" => self.initialization_binding.push(StringStringEntryProto::default()),
+              "update_binding" => self.update_binding.push(StringStringEntryProto::default()),
+              _ => panic!("TRAININGINFOPROTO -> stringstringentryproto: cannot add element to: {}; not found.", attribute_name)
+            }
+          }else{
+            match attribute_name{
+              "initialization_binding" => self.initialization_binding.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "update_binding" => self.update_binding.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("TRAININGINFOPROTO -> stringstringentryproto: cannot dispatch element: {}; not found.", attribute_name)
+            }
+          }
+        },
+        _ => panic!("TRAININGINFOPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 }
 
-impl ::protobuf::Message for TrainingInfoProto {
+impl protobuf::Message for TrainingInfoProto {
   const NAME: &'static str = "TrainingInfoProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.initialization)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.initialization)?;
         },
         18 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.algorithm)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.algorithm)?;
         },
         26 => {
           self.initialization_binding.push(is.read_message()?);
@@ -1301,11 +1439,28 @@ impl ::protobuf::Message for TrainingInfoProto {
           self.update_binding.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    if let Some(v) = self.initialization.as_ref() {
+      protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+    }
+    if let Some(v) = self.algorithm.as_ref() {
+      protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+    }
+    for v in &self.initialization_binding {
+      protobuf::rt::write_message_field_with_cached_size(3, v, os)?;
+    };
+    for v in &self.update_binding {
+      protobuf::rt::write_message_field_with_cached_size(4, v, os)?;
+    };
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -1314,47 +1469,30 @@ impl ::protobuf::Message for TrainingInfoProto {
     let mut my_size = 0;
     if let Some(v) = self.initialization.as_ref() {
       let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     }
     if let Some(v) = self.algorithm.as_ref() {
       let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     }
     for value in &self.initialization_binding {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     for value in &self.update_binding {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    if let Some(v) = self.initialization.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-    }
-    if let Some(v) = self.algorithm.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-    }
-    for v in &self.initialization_binding {
-      ::protobuf::rt::write_message_field_with_cached_size(3, v, os)?;
-    };
-    for v in &self.update_binding {
-      ::protobuf::rt::write_message_field_with_cached_size(4, v, os)?;
-    };
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -1372,11 +1510,11 @@ impl ::protobuf::Message for TrainingInfoProto {
 
   fn default_instance() -> &'static TrainingInfoProto {
     static instance: TrainingInfoProto = TrainingInfoProto {
-      initialization: ::protobuf::MessageField::none(),
-      algorithm: ::protobuf::MessageField::none(),
-      initialization_binding: ::std::vec::Vec::new(),
-      update_binding: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      initialization: protobuf::MessageField::none(),
+      algorithm: protobuf::MessageField::none(),
+      initialization_binding: Vec::new(),
+      update_binding: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -1395,7 +1533,7 @@ pub struct ModelProto {
   ///  The version of the IR this model targets. See Version enum above.
   ///  This field MUST be present.
   // @@protoc_insertion_point(field:onnx.ModelProto.ir_version)
-  pub ir_version: ::std::option::Option<i64>,
+  pub ir_version: Option<i64>,
   ///  The OperatorSets this model relies on.
   ///  All ModelProtos MUST have at least one entry that
   ///  specifies which version of the ONNX OperatorSet is
@@ -1405,17 +1543,17 @@ pub struct ModelProto {
   ///  with the same-domain/same-op_type operator with the HIGHEST version
   ///  in the referenced operator sets.
   // @@protoc_insertion_point(field:onnx.ModelProto.opset_import)
-  pub opset_import: ::std::vec::Vec<OperatorSetIdProto>,
+  pub opset_import: Vec<OperatorSetIdProto>,
   ///  The name of the framework or tool used to generate this model.
   ///  This field SHOULD be present to indicate which implementation/tool/framework
   ///  emitted the model.
   // @@protoc_insertion_point(field:onnx.ModelProto.producer_name)
-  pub producer_name: ::std::option::Option<::std::string::String>,
+  pub producer_name: Option<String>,
   ///  The version of the framework or tool used to generate this model.
   ///  This field SHOULD be present to indicate which implementation/tool/framework
   ///  emitted the model.
   // @@protoc_insertion_point(field:onnx.ModelProto.producer_version)
-  pub producer_version: ::std::option::Option<::std::string::String>,
+  pub producer_version: Option<String>,
   ///  Domain name of the model.
   ///  We use reverse domain names as name space indicators. For example:
   ///  `com.facebook.fair` or `com.microsoft.cognitiveservices`
@@ -1423,19 +1561,19 @@ pub struct ModelProto {
   ///  Together with `model_version` and GraphProto.name, this forms the unique identity of
   ///  the graph.
   // @@protoc_insertion_point(field:onnx.ModelProto.domain)
-  pub domain: ::std::option::Option<::std::string::String>,
+  pub domain: Option<String>,
   ///  The version of the graph encoded. See Version enum below.
   // @@protoc_insertion_point(field:onnx.ModelProto.model_version)
-  pub model_version: ::std::option::Option<i64>,
+  pub model_version: Option<i64>,
   ///  A human-readable documentation for this model. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.ModelProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   ///  The parameterized graph that is evaluated to execute the model.
   // @@protoc_insertion_point(field:onnx.ModelProto.graph)
-  pub graph: ::protobuf::MessageField<GraphProto>,
+  pub graph: protobuf::MessageField<GraphProto>,
   ///  Named metadata values; keys should be distinct.
   // @@protoc_insertion_point(field:onnx.ModelProto.metadata_props)
-  pub metadata_props: ::std::vec::Vec<StringStringEntryProto>,
+  pub metadata_props: Vec<StringStringEntryProto>,
   ///  Training-specific information. Sequentially executing all stored
   ///  `TrainingInfoProto.algorithm`s and assigning their outputs following
   ///  the corresponding `TrainingInfoProto.update_binding`s is one training
@@ -1446,7 +1584,7 @@ pub struct ModelProto {
   ///
   ///  If this field is empty, the training behavior of the model is undefined.
   // @@protoc_insertion_point(field:onnx.ModelProto.training_info)
-  pub training_info: ::std::vec::Vec<TrainingInfoProto>,
+  pub training_info: Vec<TrainingInfoProto>,
   ///  A list of function protos local to the model.
   ///
   ///  Name of the function "FunctionProto.name" should be unique within the domain "FunctionProto.domain".
@@ -1464,44 +1602,82 @@ pub struct ModelProto {
   ///  One FunctionProto can reference other FunctionProto in the model, however, recursive reference
   ///  is not allowed.
   // @@protoc_insertion_point(field:onnx.ModelProto.functions)
-  pub functions: ::std::vec::Vec<FunctionProto>,
+  pub functions: Vec<FunctionProto>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.ModelProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a ModelProto {
+impl<'a> Default for &'a ModelProto {
   fn default() -> &'a ModelProto {
-    <ModelProto as ::protobuf::Message>::default_instance()
+    <ModelProto as protobuf::Message>::default_instance()
   }
 }
 
-impl Structure for ModelProto{
-  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
-    match method_name {
-      "ir_version" => self.set_ir_version(int_value.unwrap() as i64),
-      "producer_name" => self.set_producer_name(string_value.unwrap()),
-      _ => panic!("Dispatcher, method not found")
+impl ModelProto
+{
+  pub fn new() -> ModelProto {
+    Default::default()
+  }
+  /*
+  new_structure_to_add: true only when a new structure is found from the reading of the .onnx and so needs to be added
+  */
+  pub(crate) fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of model_proto
+      match attribute_name {
+        "ir_version" => self.set_ir_version(attribute_value.into()),
+        "producer_name" => self.set_producer_name(attribute_value.to_string()),
+        "producer_version" => self.set_producer_version((attribute_value.to_string())),
+        "domain" => self.set_domain(attribute_value.to_string()),
+        "model_version" => self.set_model_version(attribute_value.into()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("MODELPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else{ //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str(){
+        "operatorsetidproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.opset_import.push(OperatorSetIdProto::default());
+          }else{
+            self.opset_import.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "graphproto" => self.graph.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "stringstringentryproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.metadata_props.push(StringStringEntryProto::default());
+          }else{
+            self.metadata_props.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "traininginfoproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.training_info.push(TrainingInfoProto::default());
+          }else{
+            self.training_info.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "functionproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.functions.push(FunctionProto::default());
+          }else{
+            self.functions.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        _ => panic!("MODELPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
     }
   }
 
-  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
-  }
-}
-
-impl ModelProto {
-  pub fn new() -> ModelProto {
-    ::std::default::Default::default()
-  }
-
   // optional int64 ir_version = 1;
-
   pub fn ir_version(&self) -> i64 {
     self.ir_version.unwrap_or(0)
   }
 
   pub fn clear_ir_version(&mut self) {
-    self.ir_version = ::std::option::Option::None;
+    self.ir_version = None;
   }
 
   pub fn has_ir_version(&self) -> bool {
@@ -1510,7 +1686,7 @@ impl ModelProto {
 
   // Param is passed by value, moved
   pub fn set_ir_version(&mut self, v: i64) {
-    self.ir_version = ::std::option::Option::Some(v);
+    self.ir_version = Some(v);
   }
 
   // optional string producer_name = 2;
@@ -1523,7 +1699,7 @@ impl ModelProto {
   }
 
   pub fn clear_producer_name(&mut self) {
-    self.producer_name = ::std::option::Option::None;
+    self.producer_name = None;
   }
 
   pub fn has_producer_name(&self) -> bool {
@@ -1531,22 +1707,22 @@ impl ModelProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_producer_name(&mut self, v: ::std::string::String) {
-    self.producer_name = ::std::option::Option::Some(v);
+  pub fn set_producer_name(&mut self, v: String) {
+    self.producer_name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_producer_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_producer_name(&mut self) -> &mut String {
     if self.producer_name.is_none() {
-      self.producer_name = ::std::option::Option::Some(::std::string::String::new());
+      self.producer_name = Some(String::new());
     }
     self.producer_name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_producer_name(&mut self) -> ::std::string::String {
-    self.producer_name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_producer_name(&mut self) -> String {
+    self.producer_name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string producer_version = 3;
@@ -1559,7 +1735,7 @@ impl ModelProto {
   }
 
   pub fn clear_producer_version(&mut self) {
-    self.producer_version = ::std::option::Option::None;
+    self.producer_version = None;
   }
 
   pub fn has_producer_version(&self) -> bool {
@@ -1567,22 +1743,22 @@ impl ModelProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_producer_version(&mut self, v: ::std::string::String) {
-    self.producer_version = ::std::option::Option::Some(v);
+  pub fn set_producer_version(&mut self, v: String) {
+    self.producer_version = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_producer_version(&mut self) -> &mut ::std::string::String {
+  pub fn mut_producer_version(&mut self) -> &mut String {
     if self.producer_version.is_none() {
-      self.producer_version = ::std::option::Option::Some(::std::string::String::new());
+      self.producer_version = Some(String::new());
     }
     self.producer_version.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_producer_version(&mut self) -> ::std::string::String {
-    self.producer_version.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_producer_version(&mut self) -> String {
+    self.producer_version.take().unwrap_or_else(|| String::new())
   }
 
   // optional string domain = 4;
@@ -1595,7 +1771,7 @@ impl ModelProto {
   }
 
   pub fn clear_domain(&mut self) {
-    self.domain = ::std::option::Option::None;
+    self.domain = None;
   }
 
   pub fn has_domain(&self) -> bool {
@@ -1603,22 +1779,22 @@ impl ModelProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_domain(&mut self, v: ::std::string::String) {
-    self.domain = ::std::option::Option::Some(v);
+  pub fn set_domain(&mut self, v: String) {
+    self.domain = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_domain(&mut self) -> &mut ::std::string::String {
+  pub fn mut_domain(&mut self) -> &mut String {
     if self.domain.is_none() {
-      self.domain = ::std::option::Option::Some(::std::string::String::new());
+      self.domain = Some(String::new());
     }
     self.domain.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_domain(&mut self) -> ::std::string::String {
-    self.domain.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_domain(&mut self) -> String {
+    self.domain.take().unwrap_or_else(|| String::new())
   }
 
   // optional int64 model_version = 5;
@@ -1628,7 +1804,7 @@ impl ModelProto {
   }
 
   pub fn clear_model_version(&mut self) {
-    self.model_version = ::std::option::Option::None;
+    self.model_version = None;
   }
 
   pub fn has_model_version(&self) -> bool {
@@ -1637,7 +1813,7 @@ impl ModelProto {
 
   // Param is passed by value, moved
   pub fn set_model_version(&mut self, v: i64) {
-    self.model_version = ::std::option::Option::Some(v);
+    self.model_version = Some(v);
   }
 
   // optional string doc_string = 6;
@@ -1650,7 +1826,7 @@ impl ModelProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -1658,58 +1834,58 @@ impl ModelProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for ModelProto {
+impl protobuf::Message for ModelProto {
   const NAME: &'static str = "ModelProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         8 => {
-          self.ir_version = ::std::option::Option::Some(is.read_int64()?);
+          self.ir_version = Some(is.read_int64()?);
         },
         66 => {
           self.opset_import.push(is.read_message()?);
         },
         18 => {
-          self.producer_name = ::std::option::Option::Some(is.read_string()?);
+          self.producer_name = Some(is.read_string()?);
         },
         26 => {
-          self.producer_version = ::std::option::Option::Some(is.read_string()?);
+          self.producer_version = Some(is.read_string()?);
         },
         34 => {
-          self.domain = ::std::option::Option::Some(is.read_string()?);
+          self.domain = Some(is.read_string()?);
         },
         40 => {
-          self.model_version = ::std::option::Option::Some(is.read_int64()?);
+          self.model_version = Some(is.read_int64()?);
         },
         50 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         58 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.graph)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.graph)?;
         },
         114 => {
           self.metadata_props.push(is.read_message()?);
@@ -1721,66 +1897,19 @@ impl ::protobuf::Message for ModelProto {
           self.functions.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    if let Some(v) = self.ir_version {
-      my_size += ::protobuf::rt::int64_size(1, v);
-    }
-    for value in &self.opset_import {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    if let Some(v) = self.producer_name.as_ref() {
-      my_size += ::protobuf::rt::string_size(2, &v);
-    }
-    if let Some(v) = self.producer_version.as_ref() {
-      my_size += ::protobuf::rt::string_size(3, &v);
-    }
-    if let Some(v) = self.domain.as_ref() {
-      my_size += ::protobuf::rt::string_size(4, &v);
-    }
-    if let Some(v) = self.model_version {
-      my_size += ::protobuf::rt::int64_size(5, v);
-    }
-    if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(6, &v);
-    }
-    if let Some(v) = self.graph.as_ref() {
-      let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    for value in &self.metadata_props {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.training_info {
-      let len = value.compute_size();
-      my_size += 2 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.functions {
-      let len = value.compute_size();
-      my_size += 2 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     if let Some(v) = self.ir_version {
       os.write_int64(1, v)?;
     }
     for v in &self.opset_import {
-      ::protobuf::rt::write_message_field_with_cached_size(8, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(8, v, os)?;
     };
     if let Some(v) = self.producer_name.as_ref() {
       os.write_string(2, v)?;
@@ -1798,26 +1927,73 @@ impl ::protobuf::Message for ModelProto {
       os.write_string(6, v)?;
     }
     if let Some(v) = self.graph.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(7, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(7, v, os)?;
     }
     for v in &self.metadata_props {
-      ::protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
     };
     for v in &self.training_info {
-      ::protobuf::rt::write_message_field_with_cached_size(20, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(20, v, os)?;
     };
     for v in &self.functions {
-      ::protobuf::rt::write_message_field_with_cached_size(25, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(25, v, os)?;
     };
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    if let Some(v) = self.ir_version {
+      my_size += protobuf::rt::int64_size(1, v);
+    }
+    for value in &self.opset_import {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    if let Some(v) = self.producer_name.as_ref() {
+      my_size += protobuf::rt::string_size(2, &v);
+    }
+    if let Some(v) = self.producer_version.as_ref() {
+      my_size += protobuf::rt::string_size(3, &v);
+    }
+    if let Some(v) = self.domain.as_ref() {
+      my_size += protobuf::rt::string_size(4, &v);
+    }
+    if let Some(v) = self.model_version {
+      my_size += protobuf::rt::int64_size(5, v);
+    }
+    if let Some(v) = self.doc_string.as_ref() {
+      my_size += protobuf::rt::string_size(6, &v);
+    }
+    if let Some(v) = self.graph.as_ref() {
+      let len = v.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    for value in &self.metadata_props {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.training_info {
+      let len = value.compute_size();
+      my_size += 2 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.functions {
+      let len = value.compute_size();
+      my_size += 2 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -1826,13 +2002,13 @@ impl ::protobuf::Message for ModelProto {
   }
 
   fn clear(&mut self) {
-    self.ir_version = ::std::option::Option::None;
+    self.ir_version = None;
     self.opset_import.clear();
-    self.producer_name = ::std::option::Option::None;
-    self.producer_version = ::std::option::Option::None;
-    self.domain = ::std::option::Option::None;
-    self.model_version = ::std::option::Option::None;
-    self.doc_string = ::std::option::Option::None;
+    self.producer_name = None;
+    self.producer_version = None;
+    self.domain = None;
+    self.model_version = None;
+    self.doc_string = None;
     self.graph.clear();
     self.metadata_props.clear();
     self.training_info.clear();
@@ -1842,18 +2018,18 @@ impl ::protobuf::Message for ModelProto {
 
   fn default_instance() -> &'static ModelProto {
     static instance: ModelProto = ModelProto {
-      ir_version: ::std::option::Option::None,
-      opset_import: ::std::vec::Vec::new(),
-      producer_name: ::std::option::Option::None,
-      producer_version: ::std::option::Option::None,
-      domain: ::std::option::Option::None,
-      model_version: ::std::option::Option::None,
-      doc_string: ::std::option::Option::None,
-      graph: ::protobuf::MessageField::none(),
-      metadata_props: ::std::vec::Vec::new(),
-      training_info: ::std::vec::Vec::new(),
-      functions: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      ir_version: None,
+      opset_import: Vec::new(),
+      producer_name: None,
+      producer_version: None,
+      domain: None,
+      model_version: None,
+      doc_string: None,
+      graph: protobuf::MessageField::none(),
+      metadata_props: Vec::new(),
+      training_info: Vec::new(),
+      functions: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -1866,27 +2042,39 @@ impl ::protobuf::Message for ModelProto {
 pub struct StringStringEntryProto {
   // message fields
   // @@protoc_insertion_point(field:onnx.StringStringEntryProto.key)
-  pub key: ::std::option::Option<::std::string::String>,
+  pub key: Option<String>,
   // @@protoc_insertion_point(field:onnx.StringStringEntryProto.value)
-  pub value: ::std::option::Option<::std::string::String>,
+  pub value: Option<String>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.StringStringEntryProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a StringStringEntryProto {
+impl<'a> Default for &'a StringStringEntryProto {
   fn default() -> &'a StringStringEntryProto {
-    <StringStringEntryProto as ::protobuf::Message>::default_instance()
+    <StringStringEntryProto as protobuf::Message>::default_instance()
   }
 }
 
 impl StringStringEntryProto {
   pub fn new() -> StringStringEntryProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, /*unused*/ _new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of string_string_entry_proto
+      match attribute_name {
+        "key" => self.set_key(attribute_value.to_string()),
+        "value" => self.set_value(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("STRINGSTRINGENTRYPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else{
+      panic!("STRINGSTRINGENTRYPROTO dispatcher complex types not allowed!: {:?}", structure_path)
+    }
   }
 
   // optional string key = 1;
-
   pub fn key(&self) -> &str {
     match self.key.as_ref() {
       Some(v) => v,
@@ -1895,7 +2083,7 @@ impl StringStringEntryProto {
   }
 
   pub fn clear_key(&mut self) {
-    self.key = ::std::option::Option::None;
+    self.key = None;
   }
 
   pub fn has_key(&self) -> bool {
@@ -1903,22 +2091,22 @@ impl StringStringEntryProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_key(&mut self, v: ::std::string::String) {
-    self.key = ::std::option::Option::Some(v);
+  pub fn set_key(&mut self, v: String) {
+    self.key = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_key(&mut self) -> &mut ::std::string::String {
+  pub fn mut_key(&mut self) -> &mut String {
     if self.key.is_none() {
-      self.key = ::std::option::Option::Some(::std::string::String::new());
+      self.key = Some(String::new());
     }
     self.key.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_key(&mut self) -> ::std::string::String {
-    self.key.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_key(&mut self) -> String {
+    self.key.take().unwrap_or_else(|| String::new())
   }
 
   // optional string value = 2;
@@ -1931,7 +2119,7 @@ impl StringStringEntryProto {
   }
 
   pub fn clear_value(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_value(&self) -> bool {
@@ -1939,65 +2127,50 @@ impl StringStringEntryProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_value(&mut self, v: ::std::string::String) {
-    self.value = ::std::option::Option::Some(v);
+  pub fn set_value(&mut self, v: String) {
+    self.value = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_value(&mut self) -> &mut ::std::string::String {
+  pub fn mut_value(&mut self) -> &mut String {
     if self.value.is_none() {
-      self.value = ::std::option::Option::Some(::std::string::String::new());
+      self.value = Some(String::new());
     }
     self.value.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_value(&mut self) -> ::std::string::String {
-    self.value.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_value(&mut self) -> String {
+    self.value.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for StringStringEntryProto {
+impl protobuf::Message for StringStringEntryProto {
   const NAME: &'static str = "StringStringEntryProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.key = ::std::option::Option::Some(is.read_string()?);
+          self.key = Some(is.read_string()?);
         },
         18 => {
-          self.value = ::std::option::Option::Some(is.read_string()?);
+          self.value = Some(is.read_string()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    if let Some(v) = self.key.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
-    }
-    if let Some(v) = self.value.as_ref() {
-      my_size += ::protobuf::rt::string_size(2, &v);
-    }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     if let Some(v) = self.key.as_ref() {
       os.write_string(1, v)?;
     }
@@ -2005,14 +2178,29 @@ impl ::protobuf::Message for StringStringEntryProto {
       os.write_string(2, v)?;
     }
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    if let Some(v) = self.key.as_ref() {
+      my_size += protobuf::rt::string_size(1, &v);
+    }
+    if let Some(v) = self.value.as_ref() {
+      my_size += protobuf::rt::string_size(2, &v);
+    }
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -2021,16 +2209,16 @@ impl ::protobuf::Message for StringStringEntryProto {
   }
 
   fn clear(&mut self) {
-    self.key = ::std::option::Option::None;
-    self.value = ::std::option::Option::None;
+    self.key = None;
+    self.value = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static StringStringEntryProto {
     static instance: StringStringEntryProto = StringStringEntryProto {
-      key: ::std::option::Option::None,
-      value: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      key: None,
+      value: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -2041,27 +2229,27 @@ impl ::protobuf::Message for StringStringEntryProto {
 pub struct TensorAnnotation {
   // message fields
   // @@protoc_insertion_point(field:onnx.TensorAnnotation.tensor_name)
-  pub tensor_name: ::std::option::Option<::std::string::String>,
+  pub tensor_name: Option<String>,
   ///  <key, value> pairs to annotate tensor specified by <tensor_name> above.
   ///  The keys used in the mapping below must be pre-defined in ONNX spec.
   ///  For example, for 8-bit linear quantization case, 'SCALE_TENSOR', 'ZERO_POINT_TENSOR' will be pre-defined as
   ///  quantization parameter keys.
   // @@protoc_insertion_point(field:onnx.TensorAnnotation.quant_parameter_tensor_names)
-  pub quant_parameter_tensor_names: ::std::vec::Vec<StringStringEntryProto>,
+  pub quant_parameter_tensor_names: Vec<StringStringEntryProto>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.TensorAnnotation.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a TensorAnnotation {
+impl<'a> Default for &'a TensorAnnotation {
   fn default() -> &'a TensorAnnotation {
-    <TensorAnnotation as ::protobuf::Message>::default_instance()
+    <TensorAnnotation as protobuf::Message>::default_instance()
   }
 }
 
 impl TensorAnnotation {
   pub fn new() -> TensorAnnotation {
-    ::std::default::Default::default()
+    Default::default()
   }
 
   // optional string tensor_name = 1;
@@ -2074,7 +2262,7 @@ impl TensorAnnotation {
   }
 
   pub fn clear_tensor_name(&mut self) {
-    self.tensor_name = ::std::option::Option::None;
+    self.tensor_name = None;
   }
 
   pub fn has_tensor_name(&self) -> bool {
@@ -2082,47 +2270,58 @@ impl TensorAnnotation {
   }
 
   // Param is passed by value, moved
-  pub fn set_tensor_name(&mut self, v: ::std::string::String) {
-    self.tensor_name = ::std::option::Option::Some(v);
+  pub fn set_tensor_name(&mut self, v: String) {
+    self.tensor_name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_tensor_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_tensor_name(&mut self) -> &mut String {
     if self.tensor_name.is_none() {
-      self.tensor_name = ::std::option::Option::Some(::std::string::String::new());
+      self.tensor_name = Some(String::new());
     }
     self.tensor_name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_tensor_name(&mut self) -> ::std::string::String {
-    self.tensor_name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_tensor_name(&mut self) -> String {
+    self.tensor_name.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for TensorAnnotation {
+impl protobuf::Message for TensorAnnotation {
   const NAME: &'static str = "TensorAnnotation";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.tensor_name = ::std::option::Option::Some(is.read_string()?);
+          self.tensor_name = Some(is.read_string()?);
         },
         18 => {
           self.quant_parameter_tensor_names.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    if let Some(v) = self.tensor_name.as_ref() {
+      os.write_string(1, v)?;
+    }
+    for v in &self.quant_parameter_tensor_names {
+      protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+    };
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -2130,33 +2329,22 @@ impl ::protobuf::Message for TensorAnnotation {
   fn compute_size(&self) -> u64 {
     let mut my_size = 0;
     if let Some(v) = self.tensor_name.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
+      my_size += protobuf::rt::string_size(1, &v);
     }
     for value in &self.quant_parameter_tensor_names {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    if let Some(v) = self.tensor_name.as_ref() {
-      os.write_string(1, v)?;
-    }
-    for v in &self.quant_parameter_tensor_names {
-      ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-    };
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -2165,16 +2353,16 @@ impl ::protobuf::Message for TensorAnnotation {
   }
 
   fn clear(&mut self) {
-    self.tensor_name = ::std::option::Option::None;
+    self.tensor_name = None;
     self.quant_parameter_tensor_names.clear();
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static TensorAnnotation {
     static instance: TensorAnnotation = TensorAnnotation {
-      tensor_name: ::std::option::Option::None,
-      quant_parameter_tensor_names: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      tensor_name: None,
+      quant_parameter_tensor_names: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -2192,73 +2380,108 @@ pub struct GraphProto {
   // message fields
   ///  The nodes in the graph, sorted topologically.
   // @@protoc_insertion_point(field:onnx.GraphProto.node)
-  pub node: ::std::vec::Vec<NodeProto>,
+  pub node: Vec<NodeProto>,
   ///  The name of the graph.
   // @@protoc_insertion_point(field:onnx.GraphProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  A list of named tensor values, used to specify constant inputs of the graph.
   ///  Each initializer (both TensorProto as well SparseTensorProto) MUST have a name.
   ///  The name MUST be unique across both initializer and sparse_initializer,
   ///  but the name MAY also appear in the input list.
   // @@protoc_insertion_point(field:onnx.GraphProto.initializer)
-  pub initializer: ::std::vec::Vec<TensorProto>,
+  pub initializer: Vec<TensorProto>,
   ///  Initializers (see above) stored in sparse format.
   // @@protoc_insertion_point(field:onnx.GraphProto.sparse_initializer)
-  pub sparse_initializer: ::std::vec::Vec<SparseTensorProto>,
+  pub sparse_initializer: Vec<SparseTensorProto>,
   ///  A human-readable documentation for this graph. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.GraphProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   ///  The inputs and outputs of the graph.
   // @@protoc_insertion_point(field:onnx.GraphProto.input)
-  pub input: ::std::vec::Vec<ValueInfoProto>,
+  pub input: Vec<ValueInfoProto>,
   // @@protoc_insertion_point(field:onnx.GraphProto.output)
-  pub output: ::std::vec::Vec<ValueInfoProto>,
+  pub output: Vec<ValueInfoProto>,
   ///  Information for the values in the graph. The ValueInfoProto.name's
   ///  must be distinct. It is optional for a value to appear in value_info list.
   // @@protoc_insertion_point(field:onnx.GraphProto.value_info)
-  pub value_info: ::std::vec::Vec<ValueInfoProto>,
+  pub value_info: Vec<ValueInfoProto>,
   ///  This field carries information to indicate the mapping among a tensor and its
   ///  quantization parameter tensors. For example:
   ///  For tensor 'a', it may have {'SCALE_TENSOR', 'a_scale'} and {'ZERO_POINT_TENSOR', 'a_zero_point'} annotated,
   ///  which means, tensor 'a_scale' and tensor 'a_zero_point' are scale and zero point of tensor 'a' in the model.
   // @@protoc_insertion_point(field:onnx.GraphProto.quantization_annotation)
-  pub quantization_annotation: ::std::vec::Vec<TensorAnnotation>,
+  pub quantization_annotation: Vec<TensorAnnotation>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.GraphProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a GraphProto {
+impl<'a> Default for &'a GraphProto {
   fn default() -> &'a GraphProto {
-    <GraphProto as ::protobuf::Message>::default_instance()
-  }
-}
-
-impl Structure for GraphProto{
-  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
-    match method_name {
-      "name" => self.set_name(string_value.unwrap()),
-      _ => panic!("Dispatcher, method not found")
-    }
-  }
-
-  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
-    match field_name {
-      "nodeproto" => {
-         self.node.push(element.as_ref().downcast_ref::<NodeProto>()); // 
-      },
-      _ => panic!("Include, method not found")
-    }
+    <GraphProto as protobuf::Message>::default_instance()
   }
 }
 
 impl GraphProto {
   pub fn new() -> GraphProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of graph_proto
+      match attribute_name {
+        "name" => self.set_name(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("GRAPHPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "nodeproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.node.push(NodeProto::default());
+          } else {
+            self.node.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "tensorproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.initializer.push(TensorProto::default());
+          } else {
+            self.initializer.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "sparsetensorproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.sparse_initializer.push(SparseTensorProto::default());
+          } else {
+            self.sparse_initializer.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "valueinfoproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            match attribute_name{
+              "input" => self.input.push(ValueInfoProto::default()),
+              "output" => self.output.push(ValueInfoProto::default()),
+              "value_info" => self.value_info.push(ValueInfoProto::default()),
+              _ => panic!("GRAPHPROTO -> valueinfoproto: attribute name Add cannot be done; it does not match any ValueInfoProto structure: {}", attribute_name)
+            }
+          } else {
+            match attribute_name{
+              "input" => self.input.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "output" => self.output.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "value_info" => self.value_info.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              _ => panic!("GRAPHPROTO -> valueinfoproto: attribute name Dispatch cannot be done; it does not match any ValueInfoProto structure: {}", attribute_name)
+            }
+          }
+        }
+        _ => panic!("GRAPHPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional string name = 2;
-
   pub fn name(&self) -> &str {
     match self.name.as_ref() {
       Some(v) => v,
@@ -2267,7 +2490,7 @@ impl GraphProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -2275,22 +2498,22 @@ impl GraphProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 10;
@@ -2303,7 +2526,7 @@ impl GraphProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -2311,40 +2534,40 @@ impl GraphProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for GraphProto {
+impl protobuf::Message for GraphProto {
   const NAME: &'static str = "GraphProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
           self.node.push(is.read_message()?);
         },
         18 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         42 => {
           self.initializer.push(is.read_message()?);
@@ -2353,7 +2576,7 @@ impl ::protobuf::Message for GraphProto {
           self.sparse_initializer.push(is.read_message()?);
         },
         82 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         90 => {
           self.input.push(is.read_message()?);
@@ -2368,11 +2591,43 @@ impl ::protobuf::Message for GraphProto {
           self.quantization_annotation.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    for v in &self.node {
+      protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+    };
+    if let Some(v) = self.name.as_ref() {
+      os.write_string(2, v)?;
+    }
+    for v in &self.initializer {
+      protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
+    };
+    for v in &self.sparse_initializer {
+      protobuf::rt::write_message_field_with_cached_size(15, v, os)?;
+    };
+    if let Some(v) = self.doc_string.as_ref() {
+      os.write_string(10, v)?;
+    }
+    for v in &self.input {
+      protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
+    };
+    for v in &self.output {
+      protobuf::rt::write_message_field_with_cached_size(12, v, os)?;
+    };
+    for v in &self.value_info {
+      protobuf::rt::write_message_field_with_cached_size(13, v, os)?;
+    };
+    for v in &self.quantization_annotation {
+      protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
+    };
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -2381,80 +2636,48 @@ impl ::protobuf::Message for GraphProto {
     let mut my_size = 0;
     for value in &self.node {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(2, &v);
+      my_size += protobuf::rt::string_size(2, &v);
     }
     for value in &self.initializer {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     for value in &self.sparse_initializer {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(10, &v);
+      my_size += protobuf::rt::string_size(10, &v);
     }
     for value in &self.input {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     for value in &self.output {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     for value in &self.value_info {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
     for value in &self.quantization_annotation {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    for v in &self.node {
-      ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-    };
-    if let Some(v) = self.name.as_ref() {
-      os.write_string(2, v)?;
-    }
-    for v in &self.initializer {
-      ::protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
-    };
-    for v in &self.sparse_initializer {
-      ::protobuf::rt::write_message_field_with_cached_size(15, v, os)?;
-    };
-    if let Some(v) = self.doc_string.as_ref() {
-      os.write_string(10, v)?;
-    }
-    for v in &self.input {
-      ::protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
-    };
-    for v in &self.output {
-      ::protobuf::rt::write_message_field_with_cached_size(12, v, os)?;
-    };
-    for v in &self.value_info {
-      ::protobuf::rt::write_message_field_with_cached_size(13, v, os)?;
-    };
-    for v in &self.quantization_annotation {
-      ::protobuf::rt::write_message_field_with_cached_size(14, v, os)?;
-    };
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -2464,10 +2687,10 @@ impl ::protobuf::Message for GraphProto {
 
   fn clear(&mut self) {
     self.node.clear();
-    self.name = ::std::option::Option::None;
+    self.name = None;
     self.initializer.clear();
     self.sparse_initializer.clear();
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
     self.input.clear();
     self.output.clear();
     self.value_info.clear();
@@ -2477,16 +2700,16 @@ impl ::protobuf::Message for GraphProto {
 
   fn default_instance() -> &'static GraphProto {
     static instance: GraphProto = GraphProto {
-      node: ::std::vec::Vec::new(),
-      name: ::std::option::Option::None,
-      initializer: ::std::vec::Vec::new(),
-      sparse_initializer: ::std::vec::Vec::new(),
-      doc_string: ::std::option::Option::None,
-      input: ::std::vec::Vec::new(),
-      output: ::std::vec::Vec::new(),
-      value_info: ::std::vec::Vec::new(),
-      quantization_annotation: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      node: Vec::new(),
+      name: None,
+      initializer: Vec::new(),
+      sparse_initializer: Vec::new(),
+      doc_string: None,
+      input: Vec::new(),
+      output: Vec::new(),
+      value_info: Vec::new(),
+      quantization_annotation: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -2501,13 +2724,13 @@ pub struct TensorProto {
   // message fields
   ///  The shape of the tensor.
   // @@protoc_insertion_point(field:onnx.TensorProto.dims)
-  pub dims: ::std::vec::Vec<i64>,
+  pub dims: Vec<i64>,
   ///  The data type of the tensor.
   ///  This field MUST have a valid TensorProto.DataType value
   // @@protoc_insertion_point(field:onnx.TensorProto.data_type)
-  pub data_type: ::std::option::Option<i32>,
+  pub data_type: Option<i32>,
   // @@protoc_insertion_point(field:onnx.TensorProto.segment)
-  pub segment: ::protobuf::MessageField<tensor_proto::Segment>,
+  pub segment: protobuf::MessageField<tensor_proto::Segment>,
   ///  For float and complex64 values
   ///  Complex64 tensors are encoded as a single array of floats,
   ///  with the real components appearing in odd numbered positions,
@@ -2516,31 +2739,31 @@ pub struct TensorProto {
   ///  is encoded as [1.0, 2.0 ,3.0 ,4.0]
   ///  When this field is present, the data_type field MUST be FLOAT or COMPLEX64.
   // @@protoc_insertion_point(field:onnx.TensorProto.float_data)
-  pub float_data: ::std::vec::Vec<f32>,
+  pub float_data: Vec<f32>,
   ///  For int32, uint8, int8, uint16, int16, bool, float8, and float16 values
   ///  float16 and float8 values must be bit-wise converted to an uint16_t prior
   ///  to writing to the buffer.
   ///  When this field is present, the data_type field MUST be
   ///  INT32, INT16, INT8, UINT16, UINT8, BOOL, FLOAT16, BFLOAT16, FLOAT8E4M3FN, FLOAT8E4M3FNUZ, FLOAT8E5M2, FLOAT8E5M2FNUZ
   // @@protoc_insertion_point(field:onnx.TensorProto.int32_data)
-  pub int32_data: ::std::vec::Vec<i32>,
+  pub int32_data: Vec<i32>,
   ///  For strings.
   ///  Each element of string_data is a UTF-8 encoded Unicode
   ///  string. No trailing null, no leading BOM. The protobuf "string"
   ///  scalar type is not used to match ML community conventions.
   ///  When this field is present, the data_type field MUST be STRING
   // @@protoc_insertion_point(field:onnx.TensorProto.string_data)
-  pub string_data: ::std::vec::Vec<::std::vec::Vec<u8>>,
+  pub string_data: Vec<Vec<u8>>,
   ///  For int64.
   ///  When this field is present, the data_type field MUST be INT64
   // @@protoc_insertion_point(field:onnx.TensorProto.int64_data)
-  pub int64_data: ::std::vec::Vec<i64>,
+  pub int64_data: Vec<i64>,
   ///  Optionally, a name for the tensor.
   // @@protoc_insertion_point(field:onnx.TensorProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  A human-readable documentation for this tensor. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.TensorProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   ///  Serializations can either use one of the fields above, or use this
   ///  raw bytes field. The only exception is the string case, where one is
   ///  required to store the content in the repeated bytes string_data field.
@@ -2557,12 +2780,12 @@ pub struct TensorProto {
   ///  variable length storage, and may lead to smaller binary footprint.
   ///  When this field is present, the data_type field MUST NOT be STRING or UNDEFINED
   // @@protoc_insertion_point(field:onnx.TensorProto.raw_data)
-  pub raw_data: ::std::option::Option<::std::vec::Vec<u8>>,
+  pub raw_data: Option<Vec<u8>>,
   // @@protoc_insertion_point(field:onnx.TensorProto.external_data)
-  pub external_data: ::std::vec::Vec<StringStringEntryProto>,
+  pub external_data: Vec<StringStringEntryProto>,
   ///  If value not set, data is stored in raw_data (if set) otherwise in type-specified field.
   // @@protoc_insertion_point(field:onnx.TensorProto.data_location)
-  pub data_location: ::std::option::Option<::protobuf::EnumOrUnknown<tensor_proto::DataLocation>>,
+  pub data_location: Option<protobuf::EnumOrUnknown<tensor_proto::DataLocation>>,
   ///  For double
   ///  Complex128 tensors are encoded as a single array of doubles,
   ///  with the real components appearing in odd numbered positions,
@@ -2571,48 +2794,69 @@ pub struct TensorProto {
   ///  is encoded as [1.0, 2.0 ,3.0 ,4.0]
   ///  When this field is present, the data_type field MUST be DOUBLE or COMPLEX128
   // @@protoc_insertion_point(field:onnx.TensorProto.double_data)
-  pub double_data: ::std::vec::Vec<f64>,
+  pub double_data: Vec<f64>,
   ///  For uint64 and uint32 values
   ///  When this field is present, the data_type field MUST be
   ///  UINT32 or UINT64
   // @@protoc_insertion_point(field:onnx.TensorProto.uint64_data)
-  pub uint64_data: ::std::vec::Vec<u64>,
+  pub uint64_data: Vec<u64>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.TensorProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a TensorProto {
+impl<'a> Default for &'a TensorProto {
   fn default() -> &'a TensorProto {
-    <TensorProto as ::protobuf::Message>::default_instance()
-  }
-}
-
-impl Structure for TensorProto{
-  fn dispatch(&mut self, method_name: &str, int_value: Option<i32>, string_value: Option<String>, float_value: Option<f32>) {
-    match method_name {
-      "name" => self.set_name(string_value.unwrap()),
-      _ => panic!("Dispatcher, method not found")
-    }
-  }
-
-  fn include(&mut self, field_name: &str, element: &mut Box<dyn Structure>) {
+    <TensorProto as protobuf::Message>::default_instance()
   }
 }
 
 impl TensorProto {
   pub fn new() -> TensorProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of tensor_proto
+      match attribute_name {
+        "dims" => self.dims.push(attribute_value.into()),
+        "data_types" => self.set_data_type(attribute_value.into()),
+        "float_data" => self.float_data.push(attribute_value.into()),
+        "int32_data" => self.int32_data.push(attribute_value.into()),
+        "string_data" => self.string_data.push(Vec::from(attribute_value.to_string())),
+        "int64_data" => self.int64_data.push(attribute_value.into()),
+        "name" => self.set_name(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "raw_data" => self.set_raw_data(Vec::from(attribute_value.to_string())),
+        "double_data" => self.double_data.push(attribute_value.into()),
+        "uint64_data" => self.uint64_data.push(attribute_value.into()),
+        "special_fields" => {},
+        _ => panic!("MODELPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else{ //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str(){
+        "segment" => self.segment.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "stringstringentryproto" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.external_data.push(StringStringEntryProto::default());
+          }else{
+            self.external_data.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "datalocation" => { },
+        _ => panic!("MODELPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional int32 data_type = 2;
-
   pub fn data_type(&self) -> i32 {
     self.data_type.unwrap_or(0)
   }
 
   pub fn clear_data_type(&mut self) {
-    self.data_type = ::std::option::Option::None;
+    self.data_type = None;
   }
 
   pub fn has_data_type(&self) -> bool {
@@ -2621,7 +2865,7 @@ impl TensorProto {
 
   // Param is passed by value, moved
   pub fn set_data_type(&mut self, v: i32) {
-    self.data_type = ::std::option::Option::Some(v);
+    self.data_type = Some(v);
   }
 
   // optional string name = 8;
@@ -2634,7 +2878,7 @@ impl TensorProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -2642,22 +2886,22 @@ impl TensorProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 12;
@@ -2670,7 +2914,7 @@ impl TensorProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -2678,22 +2922,22 @@ impl TensorProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 
   // optional bytes raw_data = 9;
@@ -2706,7 +2950,7 @@ impl TensorProto {
   }
 
   pub fn clear_raw_data(&mut self) {
-    self.raw_data = ::std::option::Option::None;
+    self.raw_data = None;
   }
 
   pub fn has_raw_data(&self) -> bool {
@@ -2714,22 +2958,22 @@ impl TensorProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_raw_data(&mut self, v: ::std::vec::Vec<u8>) {
-    self.raw_data = ::std::option::Option::Some(v);
+  pub fn set_raw_data(&mut self, v: Vec<u8>) {
+    self.raw_data = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_raw_data(&mut self) -> &mut ::std::vec::Vec<u8> {
+  pub fn mut_raw_data(&mut self) -> &mut Vec<u8> {
     if self.raw_data.is_none() {
-      self.raw_data = ::std::option::Option::Some(::std::vec::Vec::new());
+      self.raw_data = Some(Vec::new());
     }
     self.raw_data.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_raw_data(&mut self) -> ::std::vec::Vec<u8> {
-    self.raw_data.take().unwrap_or_else(|| ::std::vec::Vec::new())
+  pub fn take_raw_data(&mut self) -> Vec<u8> {
+    self.raw_data.take().unwrap_or_else(|| Vec::new())
   }
 
   // optional .onnx.TensorProto.DataLocation data_location = 14;
@@ -2742,7 +2986,7 @@ impl TensorProto {
   }
 
   pub fn clear_data_location(&mut self) {
-    self.data_location = ::std::option::Option::None;
+    self.data_location = None;
   }
 
   pub fn has_data_location(&self) -> bool {
@@ -2751,18 +2995,18 @@ impl TensorProto {
 
   // Param is passed by value, moved
   pub fn set_data_location(&mut self, v: tensor_proto::DataLocation) {
-    self.data_location = ::std::option::Option::Some(::protobuf::EnumOrUnknown::new(v));
+    self.data_location = Some(protobuf::EnumOrUnknown::new(v));
   }
 }
 
-impl ::protobuf::Message for TensorProto {
+impl protobuf::Message for TensorProto {
   const NAME: &'static str = "TensorProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
@@ -2772,10 +3016,10 @@ impl ::protobuf::Message for TensorProto {
           self.dims.push(is.read_int64()?);
         },
         16 => {
-          self.data_type = ::std::option::Option::Some(is.read_int32()?);
+          self.data_type = Some(is.read_int32()?);
         },
         26 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.segment)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.segment)?;
         },
         34 => {
           is.read_repeated_packed_float_into(&mut self.float_data)?;
@@ -2799,19 +3043,19 @@ impl ::protobuf::Message for TensorProto {
           self.int64_data.push(is.read_int64()?);
         },
         66 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         98 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         74 => {
-          self.raw_data = ::std::option::Option::Some(is.read_bytes()?);
+          self.raw_data = Some(is.read_bytes()?);
         },
         106 => {
           self.external_data.push(is.read_message()?);
         },
         112 => {
-          self.data_location = ::std::option::Option::Some(is.read_enum_or_unknown()?);
+          self.data_location = Some(is.read_enum_or_unknown()?);
         },
         82 => {
           is.read_repeated_packed_double_into(&mut self.double_data)?;
@@ -2826,57 +3070,14 @@ impl ::protobuf::Message for TensorProto {
           self.uint64_data.push(is.read_uint64()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    for value in &self.dims {
-      my_size += ::protobuf::rt::int64_size(1, *value);
-    };
-    if let Some(v) = self.data_type {
-      my_size += ::protobuf::rt::int32_size(2, v);
-    }
-    if let Some(v) = self.segment.as_ref() {
-      let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    }
-    my_size += ::protobuf::rt::vec_packed_float_size(4, &self.float_data);
-    my_size += ::protobuf::rt::vec_packed_int32_size(5, &self.int32_data);
-    for value in &self.string_data {
-      my_size += ::protobuf::rt::bytes_size(6, &value);
-    };
-    my_size += ::protobuf::rt::vec_packed_int64_size(7, &self.int64_data);
-    if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(8, &v);
-    }
-    if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(12, &v);
-    }
-    if let Some(v) = self.raw_data.as_ref() {
-      my_size += ::protobuf::rt::bytes_size(9, &v);
-    }
-    for value in &self.external_data {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    if let Some(v) = self.data_location {
-      my_size += ::protobuf::rt::int32_size(14, v.value());
-    }
-    my_size += ::protobuf::rt::vec_packed_double_size(10, &self.double_data);
-    my_size += ::protobuf::rt::vec_packed_uint64_size(11, &self.uint64_data);
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     for v in &self.dims {
       os.write_int64(1, *v)?;
     };
@@ -2884,7 +3085,7 @@ impl ::protobuf::Message for TensorProto {
       os.write_int32(2, v)?;
     }
     if let Some(v) = self.segment.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(3, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(3, v, os)?;
     }
     os.write_repeated_packed_float(4, &self.float_data)?;
     os.write_repeated_packed_int32(5, &self.int32_data)?;
@@ -2902,22 +3103,65 @@ impl ::protobuf::Message for TensorProto {
       os.write_bytes(9, v)?;
     }
     for v in &self.external_data {
-      ::protobuf::rt::write_message_field_with_cached_size(13, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(13, v, os)?;
     };
     if let Some(v) = self.data_location {
-      os.write_enum(14, ::protobuf::EnumOrUnknown::value(&v))?;
+      os.write_enum(14, protobuf::EnumOrUnknown::value(&v))?;
     }
     os.write_repeated_packed_double(10, &self.double_data)?;
     os.write_repeated_packed_uint64(11, &self.uint64_data)?;
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    for value in &self.dims {
+      my_size += protobuf::rt::int64_size(1, *value);
+    };
+    if let Some(v) = self.data_type {
+      my_size += protobuf::rt::int32_size(2, v);
+    }
+    if let Some(v) = self.segment.as_ref() {
+      let len = v.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    }
+    my_size += protobuf::rt::vec_packed_float_size(4, &self.float_data);
+    my_size += protobuf::rt::vec_packed_int32_size(5, &self.int32_data);
+    for value in &self.string_data {
+      my_size += protobuf::rt::bytes_size(6, &value);
+    };
+    my_size += protobuf::rt::vec_packed_int64_size(7, &self.int64_data);
+    if let Some(v) = self.name.as_ref() {
+      my_size += protobuf::rt::string_size(8, &v);
+    }
+    if let Some(v) = self.doc_string.as_ref() {
+      my_size += protobuf::rt::string_size(12, &v);
+    }
+    if let Some(v) = self.raw_data.as_ref() {
+      my_size += protobuf::rt::bytes_size(9, &v);
+    }
+    for value in &self.external_data {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    if let Some(v) = self.data_location {
+      my_size += protobuf::rt::int32_size(14, v.value());
+    }
+    my_size += protobuf::rt::vec_packed_double_size(10, &self.double_data);
+    my_size += protobuf::rt::vec_packed_uint64_size(11, &self.uint64_data);
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -2927,17 +3171,17 @@ impl ::protobuf::Message for TensorProto {
 
   fn clear(&mut self) {
     self.dims.clear();
-    self.data_type = ::std::option::Option::None;
+    self.data_type = None;
     self.segment.clear();
     self.float_data.clear();
     self.int32_data.clear();
     self.string_data.clear();
     self.int64_data.clear();
-    self.name = ::std::option::Option::None;
-    self.doc_string = ::std::option::Option::None;
-    self.raw_data = ::std::option::Option::None;
+    self.name = None;
+    self.doc_string = None;
+    self.raw_data = None;
     self.external_data.clear();
-    self.data_location = ::std::option::Option::None;
+    self.data_location = None;
     self.double_data.clear();
     self.uint64_data.clear();
     self.special_fields.clear();
@@ -2945,21 +3189,21 @@ impl ::protobuf::Message for TensorProto {
 
   fn default_instance() -> &'static TensorProto {
     static instance: TensorProto = TensorProto {
-      dims: ::std::vec::Vec::new(),
-      data_type: ::std::option::Option::None,
-      segment: ::protobuf::MessageField::none(),
-      float_data: ::std::vec::Vec::new(),
-      int32_data: ::std::vec::Vec::new(),
-      string_data: ::std::vec::Vec::new(),
-      int64_data: ::std::vec::Vec::new(),
-      name: ::std::option::Option::None,
-      doc_string: ::std::option::Option::None,
-      raw_data: ::std::option::Option::None,
-      external_data: ::std::vec::Vec::new(),
-      data_location: ::std::option::Option::None,
-      double_data: ::std::vec::Vec::new(),
-      uint64_data: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      dims: Vec::new(),
+      data_type: None,
+      segment: protobuf::MessageField::none(),
+      float_data: Vec::new(),
+      int32_data: Vec::new(),
+      string_data: Vec::new(),
+      int64_data: Vec::new(),
+      name: None,
+      doc_string: None,
+      raw_data: None,
+      external_data: Vec::new(),
+      data_location: None,
+      double_data: Vec::new(),
+      uint64_data: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -2975,33 +3219,45 @@ pub mod tensor_proto {
   pub struct Segment {
     // message fields
     // @@protoc_insertion_point(field:onnx.TensorProto.Segment.begin)
-    pub begin: ::std::option::Option<i64>,
+    pub begin: Option<i64>,
     // @@protoc_insertion_point(field:onnx.TensorProto.Segment.end)
-    pub end: ::std::option::Option<i64>,
+    pub end: Option<i64>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TensorProto.Segment.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Segment {
+  impl<'a> Default for &'a Segment {
     fn default() -> &'a Segment {
-      <Segment as ::protobuf::Message>::default_instance()
+      <Segment as protobuf::Message>::default_instance()
     }
   }
 
   impl Segment {
     pub fn new() -> Segment {
-      ::std::default::Default::default()
+      Default::default()
+    }
+
+    pub(crate) fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of segment
+        match attribute_name {
+          "begin" => self.set_begin(attribute_value.into()),
+          "end" => self.set_end(attribute_value.into()),
+          "special_fields" => {},
+          _ => panic!("SEGMENT dispatcher simple types, method not found: {}", attribute_name)
+        }
+      }else{ //complex types, here starts the dispatch recursion.
+        panic!("SEGMENT dispatcher complex types, no children allowed: {:?}", structure_path);
+      }
     }
 
     // optional int64 begin = 1;
-
     pub fn begin(&self) -> i64 {
       self.begin.unwrap_or(0)
     }
 
     pub fn clear_begin(&mut self) {
-      self.begin = ::std::option::Option::None;
+      self.begin = None;
     }
 
     pub fn has_begin(&self) -> bool {
@@ -3010,7 +3266,7 @@ pub mod tensor_proto {
 
     // Param is passed by value, moved
     pub fn set_begin(&mut self, v: i64) {
-      self.begin = ::std::option::Option::Some(v);
+      self.begin = Some(v);
     }
 
     // optional int64 end = 2;
@@ -3020,7 +3276,7 @@ pub mod tensor_proto {
     }
 
     pub fn clear_end(&mut self) {
-      self.end = ::std::option::Option::None;
+      self.end = None;
     }
 
     pub fn has_end(&self) -> bool {
@@ -3029,50 +3285,35 @@ pub mod tensor_proto {
 
     // Param is passed by value, moved
     pub fn set_end(&mut self, v: i64) {
-      self.end = ::std::option::Option::Some(v);
+      self.end = Some(v);
     }
   }
 
-  impl ::protobuf::Message for Segment {
+  impl protobuf::Message for Segment {
     const NAME: &'static str = "Segment";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           8 => {
-            self.begin = ::std::option::Option::Some(is.read_int64()?);
+            self.begin = Some(is.read_int64()?);
           },
           16 => {
-            self.end = ::std::option::Option::Some(is.read_int64()?);
+            self.end = Some(is.read_int64()?);
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
     }
 
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u64 {
-      let mut my_size = 0;
-      if let Some(v) = self.begin {
-        my_size += ::protobuf::rt::int64_size(1, v);
-      }
-      if let Some(v) = self.end {
-        my_size += ::protobuf::rt::int64_size(2, v);
-      }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-      self.special_fields.cached_size().set(my_size as u32);
-      my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
       if let Some(v) = self.begin {
         os.write_int64(1, v)?;
       }
@@ -3080,14 +3321,29 @@ pub mod tensor_proto {
         os.write_int64(2, v)?;
       }
       os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
+      Ok(())
     }
 
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+      let mut my_size = 0;
+      if let Some(v) = self.begin {
+        my_size += protobuf::rt::int64_size(1, v);
+      }
+      if let Some(v) = self.end {
+        my_size += protobuf::rt::int64_size(2, v);
+      }
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      self.special_fields.cached_size().set(my_size as u32);
+      my_size
+    }
+
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -3096,16 +3352,16 @@ pub mod tensor_proto {
     }
 
     fn clear(&mut self) {
-      self.begin = ::std::option::Option::None;
-      self.end = ::std::option::Option::None;
+      self.begin = None;
+      self.end = None;
       self.special_fields.clear();
     }
 
     fn default_instance() -> &'static Segment {
       static instance: Segment = Segment {
-        begin: ::std::option::Option::None,
-        end: ::std::option::Option::None,
-        special_fields: ::protobuf::SpecialFields::new(),
+        begin: None,
+        end: None,
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -3158,37 +3414,37 @@ pub mod tensor_proto {
     FLOAT8E5M2FNUZ = 20,
   }
 
-  impl ::protobuf::Enum for DataType {
+  impl protobuf::Enum for DataType {
     const NAME: &'static str = "DataType";
 
     fn value(&self) -> i32 {
       *self as i32
     }
 
-    fn from_i32(value: i32) -> ::std::option::Option<DataType> {
+    fn from_i32(value: i32) -> Option<DataType> {
       match value {
-        0 => ::std::option::Option::Some(DataType::UNDEFINED),
-        1 => ::std::option::Option::Some(DataType::FLOAT),
-        2 => ::std::option::Option::Some(DataType::UINT8),
-        3 => ::std::option::Option::Some(DataType::INT8),
-        4 => ::std::option::Option::Some(DataType::UINT16),
-        5 => ::std::option::Option::Some(DataType::INT16),
-        6 => ::std::option::Option::Some(DataType::INT32),
-        7 => ::std::option::Option::Some(DataType::INT64),
-        8 => ::std::option::Option::Some(DataType::STRING),
-        9 => ::std::option::Option::Some(DataType::BOOL),
-        10 => ::std::option::Option::Some(DataType::FLOAT16),
-        11 => ::std::option::Option::Some(DataType::DOUBLE),
-        12 => ::std::option::Option::Some(DataType::UINT32),
-        13 => ::std::option::Option::Some(DataType::UINT64),
-        14 => ::std::option::Option::Some(DataType::COMPLEX64),
-        15 => ::std::option::Option::Some(DataType::COMPLEX128),
-        16 => ::std::option::Option::Some(DataType::BFLOAT16),
-        17 => ::std::option::Option::Some(DataType::FLOAT8E4M3FN),
-        18 => ::std::option::Option::Some(DataType::FLOAT8E4M3FNUZ),
-        19 => ::std::option::Option::Some(DataType::FLOAT8E5M2),
-        20 => ::std::option::Option::Some(DataType::FLOAT8E5M2FNUZ),
-        _ => ::std::option::Option::None
+        0 => Some(DataType::UNDEFINED),
+        1 => Some(DataType::FLOAT),
+        2 => Some(DataType::UINT8),
+        3 => Some(DataType::INT8),
+        4 => Some(DataType::UINT16),
+        5 => Some(DataType::INT16),
+        6 => Some(DataType::INT32),
+        7 => Some(DataType::INT64),
+        8 => Some(DataType::STRING),
+        9 => Some(DataType::BOOL),
+        10 => Some(DataType::FLOAT16),
+        11 => Some(DataType::DOUBLE),
+        12 => Some(DataType::UINT32),
+        13 => Some(DataType::UINT64),
+        14 => Some(DataType::COMPLEX64),
+        15 => Some(DataType::COMPLEX128),
+        16 => Some(DataType::BFLOAT16),
+        17 => Some(DataType::FLOAT8E4M3FN),
+        18 => Some(DataType::FLOAT8E4M3FNUZ),
+        19 => Some(DataType::FLOAT8E5M2),
+        20 => Some(DataType::FLOAT8E5M2FNUZ),
+        _ => None
       }
     }
 
@@ -3217,7 +3473,7 @@ pub mod tensor_proto {
     ];
   }
 
-  impl ::std::default::Default for DataType {
+  impl Default for DataType {
     fn default() -> Self {
       DataType::UNDEFINED
     }
@@ -3236,18 +3492,18 @@ pub mod tensor_proto {
     EXTERNAL = 1,
   }
 
-  impl ::protobuf::Enum for DataLocation {
+  impl protobuf::Enum for DataLocation {
     const NAME: &'static str = "DataLocation";
 
     fn value(&self) -> i32 {
       *self as i32
     }
 
-    fn from_i32(value: i32) -> ::std::option::Option<DataLocation> {
+    fn from_i32(value: i32) -> Option<DataLocation> {
       match value {
-        0 => ::std::option::Option::Some(DataLocation::DEFAULT),
-        1 => ::std::option::Option::Some(DataLocation::EXTERNAL),
-        _ => ::std::option::Option::None
+        0 => Some(DataLocation::DEFAULT),
+        1 => Some(DataLocation::EXTERNAL),
+        _ => None
       }
     }
 
@@ -3257,7 +3513,7 @@ pub mod tensor_proto {
     ];
   }
 
-  impl ::std::default::Default for DataLocation {
+  impl Default for DataLocation {
     fn default() -> Self {
       DataLocation::DEFAULT
     }
@@ -3275,7 +3531,7 @@ pub struct SparseTensorProto {
   ///  values must have a non-empty name present which serves as a name for SparseTensorProto
   ///  when used in sparse_initializer list.
   // @@protoc_insertion_point(field:onnx.SparseTensorProto.values)
-  pub values: ::protobuf::MessageField<TensorProto>,
+  pub values: protobuf::MessageField<TensorProto>,
   ///  The indices of the non-default values, which may be stored in one of two formats.
   ///  (a) Indices can be a tensor of shape [NNZ, rank] with the [i,j]-th value
   ///  corresponding to the j-th index of the i-th value (in the values tensor).
@@ -3287,42 +3543,64 @@ pub struct SparseTensorProto {
   ///  In the first format, the ordering is lexicographic-ordering:
   ///  e.g., index-value [1,4] must appear before [2,1]
   // @@protoc_insertion_point(field:onnx.SparseTensorProto.indices)
-  pub indices: ::protobuf::MessageField<TensorProto>,
+  pub indices: protobuf::MessageField<TensorProto>,
   ///  The shape of the underlying dense-tensor: [dim_1, dim_2, ... dim_rank]
   // @@protoc_insertion_point(field:onnx.SparseTensorProto.dims)
-  pub dims: ::std::vec::Vec<i64>,
+  pub dims: Vec<i64>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.SparseTensorProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a SparseTensorProto {
+impl<'a> Default for &'a SparseTensorProto {
   fn default() -> &'a SparseTensorProto {
-    <SparseTensorProto as ::protobuf::Message>::default_instance()
+    <SparseTensorProto as protobuf::Message>::default_instance()
   }
 }
 
 impl SparseTensorProto {
   pub fn new() -> SparseTensorProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of sparse_tensor_proto
+      match attribute_name {
+        "dims" => self.dims.push(attribute_value.into()),
+        "special_fields" => {},
+        _ => panic!("SPARSETENSORPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "tensorproto" => {
+          match attribute_name{
+            "values" => self.values.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            "indices" => self.indices.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            _ => panic!("SPARSETENSORPROTO -> tensorproto: attribute name Dispatch cannot be done; it does not match any TensorProto structure: {}", attribute_name)
+          }
+        }
+        _ => panic!("SPARSETENSORPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 }
 
-impl ::protobuf::Message for SparseTensorProto {
+impl protobuf::Message for SparseTensorProto {
   const NAME: &'static str = "SparseTensorProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.values)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.values)?;
         },
         18 => {
-          ::protobuf::rt::read_singular_message_into_field(is, &mut self.indices)?;
+          protobuf::rt::read_singular_message_into_field(is, &mut self.indices)?;
         },
         26 => {
           is.read_repeated_packed_int64_into(&mut self.dims)?;
@@ -3331,11 +3609,25 @@ impl ::protobuf::Message for SparseTensorProto {
           self.dims.push(is.read_int64()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    if let Some(v) = self.values.as_ref() {
+      protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+    }
+    if let Some(v) = self.indices.as_ref() {
+      protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+    }
+    for v in &self.dims {
+      os.write_int64(3, *v)?;
+    };
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -3344,39 +3636,25 @@ impl ::protobuf::Message for SparseTensorProto {
     let mut my_size = 0;
     if let Some(v) = self.values.as_ref() {
       let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     }
     if let Some(v) = self.indices.as_ref() {
       let len = v.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     }
     for value in &self.dims {
-      my_size += ::protobuf::rt::int64_size(3, *value);
+      my_size += protobuf::rt::int64_size(3, *value);
     };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    if let Some(v) = self.values.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-    }
-    if let Some(v) = self.indices.as_ref() {
-      ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-    }
-    for v in &self.dims {
-      os.write_int64(3, *v)?;
-    };
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -3393,10 +3671,10 @@ impl ::protobuf::Message for SparseTensorProto {
 
   fn default_instance() -> &'static SparseTensorProto {
     static instance: SparseTensorProto = SparseTensorProto {
-      values: ::protobuf::MessageField::none(),
-      indices: ::protobuf::MessageField::none(),
-      dims: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      values: protobuf::MessageField::none(),
+      indices: protobuf::MessageField::none(),
+      dims: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -3410,43 +3688,51 @@ impl ::protobuf::Message for SparseTensorProto {
 pub struct TensorShapeProto {
   // message fields
   // @@protoc_insertion_point(field:onnx.TensorShapeProto.dim)
-  pub dim: ::std::vec::Vec<tensor_shape_proto::Dimension>,
+  pub dim: Vec<tensor_shape_proto::Dimension>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.TensorShapeProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a TensorShapeProto {
+impl<'a> Default for &'a TensorShapeProto {
   fn default() -> &'a TensorShapeProto {
-    <TensorShapeProto as ::protobuf::Message>::default_instance()
+    <TensorShapeProto as protobuf::Message>::default_instance()
   }
 }
 
 impl TensorShapeProto {
   pub fn new() -> TensorShapeProto {
-    ::std::default::Default::default()
+    Default::default()
   }
 }
 
-impl ::protobuf::Message for TensorShapeProto {
+impl protobuf::Message for TensorShapeProto {
   const NAME: &'static str = "TensorShapeProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
           self.dim.push(is.read_message()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    for v in &self.dim {
+      protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+    };
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -3455,26 +3741,18 @@ impl ::protobuf::Message for TensorShapeProto {
     let mut my_size = 0;
     for value in &self.dim {
       let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
     };
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    for v in &self.dim {
-      ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-    };
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -3489,8 +3767,8 @@ impl ::protobuf::Message for TensorShapeProto {
 
   fn default_instance() -> &'static TensorShapeProto {
     static instance: TensorShapeProto = TensorShapeProto {
-      dim: ::std::vec::Vec::new(),
-      special_fields: ::protobuf::SpecialFields::new(),
+      dim: Vec::new(),
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -3508,96 +3786,96 @@ pub mod tensor_shape_proto {
     ///  Refer to https://github.com/onnx/onnx/blob/main/docs/DimensionDenotation.md#denotation-definition
     ///  for pre-defined dimension denotations.
     // @@protoc_insertion_point(field:onnx.TensorShapeProto.Dimension.denotation)
-    pub denotation: ::std::option::Option<::std::string::String>,
+    pub denotation: Option<String>,
     // message oneof groups
-    pub value: ::std::option::Option<dimension::Value>,
+    pub value: Option<dimension::Value>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TensorShapeProto.Dimension.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Dimension {
+  impl<'a> Default for &'a Dimension {
     fn default() -> &'a Dimension {
-      <Dimension as ::protobuf::Message>::default_instance()
+      <Dimension as protobuf::Message>::default_instance()
     }
   }
 
   impl Dimension {
     pub fn new() -> Dimension {
-      ::std::default::Default::default()
+      Default::default()
     }
 
     // optional int64 dim_value = 1;
 
     pub fn dim_value(&self) -> i64 {
       match self.value {
-        ::std::option::Option::Some(dimension::Value::DimValue(v)) => v,
+        Some(dimension::Value::DimValue(v)) => v,
         _ => 0,
       }
     }
 
     pub fn clear_dim_value(&mut self) {
-      self.value = ::std::option::Option::None;
+      self.value = None;
     }
 
     pub fn has_dim_value(&self) -> bool {
       match self.value {
-        ::std::option::Option::Some(dimension::Value::DimValue(..)) => true,
+        Some(dimension::Value::DimValue(..)) => true,
         _ => false,
       }
     }
 
     // Param is passed by value, moved
     pub fn set_dim_value(&mut self, v: i64) {
-      self.value = ::std::option::Option::Some(dimension::Value::DimValue(v))
+      self.value = Some(dimension::Value::DimValue(v))
     }
 
     // optional string dim_param = 2;
 
     pub fn dim_param(&self) -> &str {
       match self.value {
-        ::std::option::Option::Some(dimension::Value::DimParam(ref v)) => v,
+        Some(dimension::Value::DimParam(ref v)) => v,
         _ => "",
       }
     }
 
     pub fn clear_dim_param(&mut self) {
-      self.value = ::std::option::Option::None;
+      self.value = None;
     }
 
     pub fn has_dim_param(&self) -> bool {
       match self.value {
-        ::std::option::Option::Some(dimension::Value::DimParam(..)) => true,
+        Some(dimension::Value::DimParam(..)) => true,
         _ => false,
       }
     }
 
     // Param is passed by value, moved
-    pub fn set_dim_param(&mut self, v: ::std::string::String) {
-      self.value = ::std::option::Option::Some(dimension::Value::DimParam(v))
+    pub fn set_dim_param(&mut self, v: String) {
+      self.value = Some(dimension::Value::DimParam(v))
     }
 
     // Mutable pointer to the field.
-    pub fn mut_dim_param(&mut self) -> &mut ::std::string::String {
-      if let ::std::option::Option::Some(dimension::Value::DimParam(_)) = self.value {
+    pub fn mut_dim_param(&mut self) -> &mut String {
+      if let Some(dimension::Value::DimParam(_)) = self.value {
       } else {
-        self.value = ::std::option::Option::Some(dimension::Value::DimParam(::std::string::String::new()));
+        self.value = Some(dimension::Value::DimParam(String::new()));
       }
       match self.value {
-        ::std::option::Option::Some(dimension::Value::DimParam(ref mut v)) => v,
+        Some(dimension::Value::DimParam(ref mut v)) => v,
         _ => panic!(),
       }
     }
 
     // Take field
-    pub fn take_dim_param(&mut self) -> ::std::string::String {
+    pub fn take_dim_param(&mut self) -> String {
       if self.has_dim_param() {
         match self.value.take() {
-          ::std::option::Option::Some(dimension::Value::DimParam(v)) => v,
+          Some(dimension::Value::DimParam(v)) => v,
           _ => panic!(),
         }
       } else {
-        ::std::string::String::new()
+        String::new()
       }
     }
 
@@ -3611,7 +3889,7 @@ pub mod tensor_shape_proto {
     }
 
     pub fn clear_denotation(&mut self) {
-      self.denotation = ::std::option::Option::None;
+      self.denotation = None;
     }
 
     pub fn has_denotation(&self) -> bool {
@@ -3619,79 +3897,57 @@ pub mod tensor_shape_proto {
     }
 
     // Param is passed by value, moved
-    pub fn set_denotation(&mut self, v: ::std::string::String) {
-      self.denotation = ::std::option::Option::Some(v);
+    pub fn set_denotation(&mut self, v: String) {
+      self.denotation = Some(v);
     }
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_denotation(&mut self) -> &mut ::std::string::String {
+    pub fn mut_denotation(&mut self) -> &mut String {
       if self.denotation.is_none() {
-        self.denotation = ::std::option::Option::Some(::std::string::String::new());
+        self.denotation = Some(String::new());
       }
       self.denotation.as_mut().unwrap()
     }
 
     // Take field
-    pub fn take_denotation(&mut self) -> ::std::string::String {
-      self.denotation.take().unwrap_or_else(|| ::std::string::String::new())
+    pub fn take_denotation(&mut self) -> String {
+      self.denotation.take().unwrap_or_else(|| String::new())
     }
   }
 
-  impl ::protobuf::Message for Dimension {
+  impl protobuf::Message for Dimension {
     const NAME: &'static str = "Dimension";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           8 => {
-            self.value = ::std::option::Option::Some(dimension::Value::DimValue(is.read_int64()?));
+            self.value = Some(dimension::Value::DimValue(is.read_int64()?));
           },
           18 => {
-            self.value = ::std::option::Option::Some(dimension::Value::DimParam(is.read_string()?));
+            self.value = Some(dimension::Value::DimParam(is.read_string()?));
           },
           26 => {
-            self.denotation = ::std::option::Option::Some(is.read_string()?);
+            self.denotation = Some(is.read_string()?);
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
     }
 
-    // Compute sizes of nested messages
-    #[allow(unused_variables)]
-    fn compute_size(&self) -> u64 {
-      let mut my_size = 0;
-      if let Some(v) = self.denotation.as_ref() {
-        my_size += ::protobuf::rt::string_size(3, &v);
-      }
-      if let ::std::option::Option::Some(ref v) = self.value {
-        match v {
-          &dimension::Value::DimValue(v) => {
-            my_size += ::protobuf::rt::int64_size(1, v);
-          },
-          &dimension::Value::DimParam(ref v) => {
-            my_size += ::protobuf::rt::string_size(2, &v);
-          },
-        };
-      }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-      self.special_fields.cached_size().set(my_size as u32);
-      my_size
-    }
-
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
       if let Some(v) = self.denotation.as_ref() {
         os.write_string(3, v)?;
       }
-      if let ::std::option::Option::Some(ref v) = self.value {
+      if let Some(ref v) = self.value {
         match v {
           &dimension::Value::DimValue(v) => {
             os.write_int64(1, v)?;
@@ -3702,14 +3958,36 @@ pub mod tensor_shape_proto {
         };
       }
       os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
+      Ok(())
     }
 
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u64 {
+      let mut my_size = 0;
+      if let Some(v) = self.denotation.as_ref() {
+        my_size += protobuf::rt::string_size(3, &v);
+      }
+      if let Some(ref v) = self.value {
+        match v {
+          &dimension::Value::DimValue(v) => {
+            my_size += protobuf::rt::int64_size(1, v);
+          },
+          &dimension::Value::DimParam(ref v) => {
+            my_size += protobuf::rt::string_size(2, &v);
+          },
+        };
+      }
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      self.special_fields.cached_size().set(my_size as u32);
+      my_size
+    }
+
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -3718,17 +3996,17 @@ pub mod tensor_shape_proto {
     }
 
     fn clear(&mut self) {
-      self.value = ::std::option::Option::None;
-      self.value = ::std::option::Option::None;
-      self.denotation = ::std::option::Option::None;
+      self.value = None;
+      self.value = None;
+      self.denotation = None;
       self.special_fields.clear();
     }
 
     fn default_instance() -> &'static Dimension {
       static instance: Dimension = Dimension {
-        denotation: ::std::option::Option::None,
-        value: ::std::option::Option::None,
-        special_fields: ::protobuf::SpecialFields::new(),
+        denotation: None,
+        value: None,
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -3744,10 +4022,10 @@ pub mod tensor_shape_proto {
       // @@protoc_insertion_point(oneof_field:onnx.TensorShapeProto.Dimension.dim_value)
       DimValue(i64),
       // @@protoc_insertion_point(oneof_field:onnx.TensorShapeProto.Dimension.dim_param)
-      DimParam(::std::string::String),
+      DimParam(String),
     }
 
-    impl ::protobuf::Oneof for Value {
+    impl protobuf::Oneof for Value {
     }
 
     impl Value {
@@ -3767,58 +4045,73 @@ pub struct TypeProto {
   ///  stored inside. Refer to https://github.com/onnx/onnx/blob/main/docs/TypeDenotation.md#type-denotation-definition
   ///  for pre-defined type denotations.
   // @@protoc_insertion_point(field:onnx.TypeProto.denotation)
-  pub denotation: ::std::option::Option<::std::string::String>,
+  pub denotation: Option<String>,
   // message oneof groups
-  pub value: ::std::option::Option<type_proto::Value>,
+  pub value: Option<type_proto::Value>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.TypeProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a TypeProto {
+impl<'a> Default for &'a TypeProto {
   fn default() -> &'a TypeProto {
-    <TypeProto as ::protobuf::Message>::default_instance()
+    <TypeProto as protobuf::Message>::default_instance()
   }
 }
 
 impl TypeProto {
   pub fn new() -> TypeProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of type_proto
+      match attribute_name {
+        "denotation" => self.set_denotation(attribute_value.to_string()),
+        "special_fields" => {},
+        _ => panic!("TYPEPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "value" => {},
+        _ => panic!("TYPEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional .onnx.TypeProto.Tensor tensor_type = 1;
-
   pub fn tensor_type(&self) -> &type_proto::Tensor {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::TensorType(ref v)) => v,
-      _ => <type_proto::Tensor as ::protobuf::Message>::default_instance(),
+      Some(type_proto::Value::TensorType(ref v)) => v,
+      _ => <type_proto::Tensor as protobuf::Message>::default_instance(),
     }
   }
 
   pub fn clear_tensor_type(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_tensor_type(&self) -> bool {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::TensorType(..)) => true,
+      Some(type_proto::Value::TensorType(..)) => true,
       _ => false,
     }
   }
 
   // Param is passed by value, moved
   pub fn set_tensor_type(&mut self, v: type_proto::Tensor) {
-    self.value = ::std::option::Option::Some(type_proto::Value::TensorType(v))
+    self.value = Some(type_proto::Value::TensorType(v))
   }
 
   // Mutable pointer to the field.
   pub fn mut_tensor_type(&mut self) -> &mut type_proto::Tensor {
-    if let ::std::option::Option::Some(type_proto::Value::TensorType(_)) = self.value {
+    if let Some(type_proto::Value::TensorType(_)) = self.value {
     } else {
-      self.value = ::std::option::Option::Some(type_proto::Value::TensorType(type_proto::Tensor::new()));
+      self.value = Some(type_proto::Value::TensorType(type_proto::Tensor::new()));
     }
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::TensorType(ref mut v)) => v,
+      Some(type_proto::Value::TensorType(ref mut v)) => v,
       _ => panic!(),
     }
   }
@@ -3827,7 +4120,7 @@ impl TypeProto {
   pub fn take_tensor_type(&mut self) -> type_proto::Tensor {
     if self.has_tensor_type() {
       match self.value.take() {
-        ::std::option::Option::Some(type_proto::Value::TensorType(v)) => v,
+        Some(type_proto::Value::TensorType(v)) => v,
         _ => panic!(),
       }
     } else {
@@ -3839,35 +4132,35 @@ impl TypeProto {
 
   pub fn sequence_type(&self) -> &type_proto::Sequence {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SequenceType(ref v)) => v,
-      _ => <type_proto::Sequence as ::protobuf::Message>::default_instance(),
+      Some(type_proto::Value::SequenceType(ref v)) => v,
+      _ => <type_proto::Sequence as protobuf::Message>::default_instance(),
     }
   }
 
   pub fn clear_sequence_type(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_sequence_type(&self) -> bool {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SequenceType(..)) => true,
+      Some(type_proto::Value::SequenceType(..)) => true,
       _ => false,
     }
   }
 
   // Param is passed by value, moved
   pub fn set_sequence_type(&mut self, v: type_proto::Sequence) {
-    self.value = ::std::option::Option::Some(type_proto::Value::SequenceType(v))
+    self.value = Some(type_proto::Value::SequenceType(v))
   }
 
   // Mutable pointer to the field.
   pub fn mut_sequence_type(&mut self) -> &mut type_proto::Sequence {
-    if let ::std::option::Option::Some(type_proto::Value::SequenceType(_)) = self.value {
+    if let Some(type_proto::Value::SequenceType(_)) = self.value {
     } else {
-      self.value = ::std::option::Option::Some(type_proto::Value::SequenceType(type_proto::Sequence::new()));
+      self.value = Some(type_proto::Value::SequenceType(type_proto::Sequence::new()));
     }
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SequenceType(ref mut v)) => v,
+      Some(type_proto::Value::SequenceType(ref mut v)) => v,
       _ => panic!(),
     }
   }
@@ -3876,7 +4169,7 @@ impl TypeProto {
   pub fn take_sequence_type(&mut self) -> type_proto::Sequence {
     if self.has_sequence_type() {
       match self.value.take() {
-        ::std::option::Option::Some(type_proto::Value::SequenceType(v)) => v,
+        Some(type_proto::Value::SequenceType(v)) => v,
         _ => panic!(),
       }
     } else {
@@ -3888,35 +4181,35 @@ impl TypeProto {
 
   pub fn map_type(&self) -> &type_proto::Map {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::MapType(ref v)) => v,
-      _ => <type_proto::Map as ::protobuf::Message>::default_instance(),
+      Some(type_proto::Value::MapType(ref v)) => v,
+      _ => <type_proto::Map as protobuf::Message>::default_instance(),
     }
   }
 
   pub fn clear_map_type(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_map_type(&self) -> bool {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::MapType(..)) => true,
+      Some(type_proto::Value::MapType(..)) => true,
       _ => false,
     }
   }
 
   // Param is passed by value, moved
   pub fn set_map_type(&mut self, v: type_proto::Map) {
-    self.value = ::std::option::Option::Some(type_proto::Value::MapType(v))
+    self.value = Some(type_proto::Value::MapType(v))
   }
 
   // Mutable pointer to the field.
   pub fn mut_map_type(&mut self) -> &mut type_proto::Map {
-    if let ::std::option::Option::Some(type_proto::Value::MapType(_)) = self.value {
+    if let Some(type_proto::Value::MapType(_)) = self.value {
     } else {
-      self.value = ::std::option::Option::Some(type_proto::Value::MapType(type_proto::Map::new()));
+      self.value = Some(type_proto::Value::MapType(type_proto::Map::new()));
     }
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::MapType(ref mut v)) => v,
+      Some(type_proto::Value::MapType(ref mut v)) => v,
       _ => panic!(),
     }
   }
@@ -3925,7 +4218,7 @@ impl TypeProto {
   pub fn take_map_type(&mut self) -> type_proto::Map {
     if self.has_map_type() {
       match self.value.take() {
-        ::std::option::Option::Some(type_proto::Value::MapType(v)) => v,
+        Some(type_proto::Value::MapType(v)) => v,
         _ => panic!(),
       }
     } else {
@@ -3937,35 +4230,35 @@ impl TypeProto {
 
   pub fn optional_type(&self) -> &type_proto::Optional {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::OptionalType(ref v)) => v,
-      _ => <type_proto::Optional as ::protobuf::Message>::default_instance(),
+      Some(type_proto::Value::OptionalType(ref v)) => v,
+      _ => <type_proto::Optional as protobuf::Message>::default_instance(),
     }
   }
 
   pub fn clear_optional_type(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_optional_type(&self) -> bool {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::OptionalType(..)) => true,
+      Some(type_proto::Value::OptionalType(..)) => true,
       _ => false,
     }
   }
 
   // Param is passed by value, moved
   pub fn set_optional_type(&mut self, v: type_proto::Optional) {
-    self.value = ::std::option::Option::Some(type_proto::Value::OptionalType(v))
+    self.value = Some(type_proto::Value::OptionalType(v))
   }
 
   // Mutable pointer to the field.
   pub fn mut_optional_type(&mut self) -> &mut type_proto::Optional {
-    if let ::std::option::Option::Some(type_proto::Value::OptionalType(_)) = self.value {
+    if let Some(type_proto::Value::OptionalType(_)) = self.value {
     } else {
-      self.value = ::std::option::Option::Some(type_proto::Value::OptionalType(type_proto::Optional::new()));
+      self.value = Some(type_proto::Value::OptionalType(type_proto::Optional::new()));
     }
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::OptionalType(ref mut v)) => v,
+      Some(type_proto::Value::OptionalType(ref mut v)) => v,
       _ => panic!(),
     }
   }
@@ -3974,7 +4267,7 @@ impl TypeProto {
   pub fn take_optional_type(&mut self) -> type_proto::Optional {
     if self.has_optional_type() {
       match self.value.take() {
-        ::std::option::Option::Some(type_proto::Value::OptionalType(v)) => v,
+        Some(type_proto::Value::OptionalType(v)) => v,
         _ => panic!(),
       }
     } else {
@@ -3986,35 +4279,35 @@ impl TypeProto {
 
   pub fn sparse_tensor_type(&self) -> &type_proto::SparseTensor {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SparseTensorType(ref v)) => v,
-      _ => <type_proto::SparseTensor as ::protobuf::Message>::default_instance(),
+      Some(type_proto::Value::SparseTensorType(ref v)) => v,
+      _ => <type_proto::SparseTensor as protobuf::Message>::default_instance(),
     }
   }
 
   pub fn clear_sparse_tensor_type(&mut self) {
-    self.value = ::std::option::Option::None;
+    self.value = None;
   }
 
   pub fn has_sparse_tensor_type(&self) -> bool {
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SparseTensorType(..)) => true,
+      Some(type_proto::Value::SparseTensorType(..)) => true,
       _ => false,
     }
   }
 
   // Param is passed by value, moved
   pub fn set_sparse_tensor_type(&mut self, v: type_proto::SparseTensor) {
-    self.value = ::std::option::Option::Some(type_proto::Value::SparseTensorType(v))
+    self.value = Some(type_proto::Value::SparseTensorType(v))
   }
 
   // Mutable pointer to the field.
   pub fn mut_sparse_tensor_type(&mut self) -> &mut type_proto::SparseTensor {
-    if let ::std::option::Option::Some(type_proto::Value::SparseTensorType(_)) = self.value {
+    if let Some(type_proto::Value::SparseTensorType(_)) = self.value {
     } else {
-      self.value = ::std::option::Option::Some(type_proto::Value::SparseTensorType(type_proto::SparseTensor::new()));
+      self.value = Some(type_proto::Value::SparseTensorType(type_proto::SparseTensor::new()));
     }
     match self.value {
-      ::std::option::Option::Some(type_proto::Value::SparseTensorType(ref mut v)) => v,
+      Some(type_proto::Value::SparseTensorType(ref mut v)) => v,
       _ => panic!(),
     }
   }
@@ -4023,7 +4316,7 @@ impl TypeProto {
   pub fn take_sparse_tensor_type(&mut self) -> type_proto::SparseTensor {
     if self.has_sparse_tensor_type() {
       match self.value.take() {
-        ::std::option::Option::Some(type_proto::Value::SparseTensorType(v)) => v,
+        Some(type_proto::Value::SparseTensorType(v)) => v,
         _ => panic!(),
       }
     } else {
@@ -4041,7 +4334,7 @@ impl TypeProto {
   }
 
   pub fn clear_denotation(&mut self) {
-    self.denotation = ::std::option::Option::None;
+    self.denotation = None;
   }
 
   pub fn has_denotation(&self) -> bool {
@@ -4049,59 +4342,86 @@ impl TypeProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_denotation(&mut self, v: ::std::string::String) {
-    self.denotation = ::std::option::Option::Some(v);
+  pub fn set_denotation(&mut self, v: String) {
+    self.denotation = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_denotation(&mut self) -> &mut ::std::string::String {
+  pub fn mut_denotation(&mut self) -> &mut String {
     if self.denotation.is_none() {
-      self.denotation = ::std::option::Option::Some(::std::string::String::new());
+      self.denotation = Some(String::new());
     }
     self.denotation.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_denotation(&mut self) -> ::std::string::String {
-    self.denotation.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_denotation(&mut self) -> String {
+    self.denotation.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for TypeProto {
+impl protobuf::Message for TypeProto {
   const NAME: &'static str = "TypeProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.value = ::std::option::Option::Some(type_proto::Value::TensorType(is.read_message()?));
+          self.value = Some(type_proto::Value::TensorType(is.read_message()?));
         },
         34 => {
-          self.value = ::std::option::Option::Some(type_proto::Value::SequenceType(is.read_message()?));
+          self.value = Some(type_proto::Value::SequenceType(is.read_message()?));
         },
         42 => {
-          self.value = ::std::option::Option::Some(type_proto::Value::MapType(is.read_message()?));
+          self.value = Some(type_proto::Value::MapType(is.read_message()?));
         },
         74 => {
-          self.value = ::std::option::Option::Some(type_proto::Value::OptionalType(is.read_message()?));
+          self.value = Some(type_proto::Value::OptionalType(is.read_message()?));
         },
         66 => {
-          self.value = ::std::option::Option::Some(type_proto::Value::SparseTensorType(is.read_message()?));
+          self.value = Some(type_proto::Value::SparseTensorType(is.read_message()?));
         },
         50 => {
-          self.denotation = ::std::option::Option::Some(is.read_string()?);
+          self.denotation = Some(is.read_string()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
+  }
+
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+    if let Some(v) = self.denotation.as_ref() {
+      os.write_string(6, v)?;
+    }
+    if let Some(ref v) = self.value {
+      match v {
+        &type_proto::Value::TensorType(ref v) => {
+          protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+        },
+        &type_proto::Value::SequenceType(ref v) => {
+          protobuf::rt::write_message_field_with_cached_size(4, v, os)?;
+        },
+        &type_proto::Value::MapType(ref v) => {
+          protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
+        },
+        &type_proto::Value::OptionalType(ref v) => {
+          protobuf::rt::write_message_field_with_cached_size(9, v, os)?;
+        },
+        &type_proto::Value::SparseTensorType(ref v) => {
+          protobuf::rt::write_message_field_with_cached_size(8, v, os)?;
+        },
+      };
+    }
+    os.write_unknown_fields(self.special_fields.unknown_fields())?;
+    Ok(())
   }
 
   // Compute sizes of nested messages
@@ -4109,69 +4429,42 @@ impl ::protobuf::Message for TypeProto {
   fn compute_size(&self) -> u64 {
     let mut my_size = 0;
     if let Some(v) = self.denotation.as_ref() {
-      my_size += ::protobuf::rt::string_size(6, &v);
+      my_size += protobuf::rt::string_size(6, &v);
     }
-    if let ::std::option::Option::Some(ref v) = self.value {
+    if let Some(ref v) = self.value {
       match v {
         &type_proto::Value::TensorType(ref v) => {
           let len = v.compute_size();
-          my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+          my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
         },
         &type_proto::Value::SequenceType(ref v) => {
           let len = v.compute_size();
-          my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+          my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
         },
         &type_proto::Value::MapType(ref v) => {
           let len = v.compute_size();
-          my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+          my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
         },
         &type_proto::Value::OptionalType(ref v) => {
           let len = v.compute_size();
-          my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+          my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
         },
         &type_proto::Value::SparseTensorType(ref v) => {
           let len = v.compute_size();
-          my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+          my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
         },
       };
     }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
     self.special_fields.cached_size().set(my_size as u32);
     my_size
   }
 
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-    if let Some(v) = self.denotation.as_ref() {
-      os.write_string(6, v)?;
-    }
-    if let ::std::option::Option::Some(ref v) = self.value {
-      match v {
-        &type_proto::Value::TensorType(ref v) => {
-          ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-        },
-        &type_proto::Value::SequenceType(ref v) => {
-          ::protobuf::rt::write_message_field_with_cached_size(4, v, os)?;
-        },
-        &type_proto::Value::MapType(ref v) => {
-          ::protobuf::rt::write_message_field_with_cached_size(5, v, os)?;
-        },
-        &type_proto::Value::OptionalType(ref v) => {
-          ::protobuf::rt::write_message_field_with_cached_size(9, v, os)?;
-        },
-        &type_proto::Value::SparseTensorType(ref v) => {
-          ::protobuf::rt::write_message_field_with_cached_size(8, v, os)?;
-        },
-      };
-    }
-    os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
-  }
-
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -4180,20 +4473,20 @@ impl ::protobuf::Message for TypeProto {
   }
 
   fn clear(&mut self) {
-    self.value = ::std::option::Option::None;
-    self.value = ::std::option::Option::None;
-    self.value = ::std::option::Option::None;
-    self.value = ::std::option::Option::None;
-    self.value = ::std::option::Option::None;
-    self.denotation = ::std::option::Option::None;
+    self.value = None;
+    self.value = None;
+    self.value = None;
+    self.value = None;
+    self.value = None;
+    self.denotation = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static TypeProto {
     static instance: TypeProto = TypeProto {
-      denotation: ::std::option::Option::None,
-      value: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      denotation: None,
+      value: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -4218,7 +4511,7 @@ pub mod type_proto {
     SparseTensorType(SparseTensor),
   }
 
-  impl ::protobuf::Oneof for Value {
+  impl protobuf::Oneof for Value {
   }
 
   impl Value {
@@ -4231,23 +4524,23 @@ pub mod type_proto {
     ///  This field MUST have a valid TensorProto.DataType value
     ///  This field MUST be present for this version of the IR.
     // @@protoc_insertion_point(field:onnx.TypeProto.Tensor.elem_type)
-    pub elem_type: ::std::option::Option<i32>,
+    pub elem_type: Option<i32>,
     // @@protoc_insertion_point(field:onnx.TypeProto.Tensor.shape)
-    pub shape: ::protobuf::MessageField<super::TensorShapeProto>,
+    pub shape: protobuf::MessageField<super::TensorShapeProto>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TypeProto.Tensor.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Tensor {
+  impl<'a> Default for &'a Tensor {
     fn default() -> &'a Tensor {
-      <Tensor as ::protobuf::Message>::default_instance()
+      <Tensor as protobuf::Message>::default_instance()
     }
   }
 
   impl Tensor {
     pub fn new() -> Tensor {
-      ::std::default::Default::default()
+      Default::default()
     }
 
     // optional int32 elem_type = 1;
@@ -4257,7 +4550,7 @@ pub mod type_proto {
     }
 
     pub fn clear_elem_type(&mut self) {
-      self.elem_type = ::std::option::Option::None;
+      self.elem_type = None;
     }
 
     pub fn has_elem_type(&self) -> bool {
@@ -4266,32 +4559,43 @@ pub mod type_proto {
 
     // Param is passed by value, moved
     pub fn set_elem_type(&mut self, v: i32) {
-      self.elem_type = ::std::option::Option::Some(v);
+      self.elem_type = Some(v);
     }
   }
 
-  impl ::protobuf::Message for Tensor {
+  impl protobuf::Message for Tensor {
     const NAME: &'static str = "Tensor";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           8 => {
-            self.elem_type = ::std::option::Option::Some(is.read_int32()?);
+            self.elem_type = Some(is.read_int32()?);
           },
           18 => {
-            ::protobuf::rt::read_singular_message_into_field(is, &mut self.shape)?;
+            protobuf::rt::read_singular_message_into_field(is, &mut self.shape)?;
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+      if let Some(v) = self.elem_type {
+        os.write_int32(1, v)?;
+      }
+      if let Some(v) = self.shape.as_ref() {
+        protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+      }
+      os.write_unknown_fields(self.special_fields.unknown_fields())?;
+      Ok(())
     }
 
     // Compute sizes of nested messages
@@ -4299,33 +4603,22 @@ pub mod type_proto {
     fn compute_size(&self) -> u64 {
       let mut my_size = 0;
       if let Some(v) = self.elem_type {
-        my_size += ::protobuf::rt::int32_size(1, v);
+        my_size += protobuf::rt::int32_size(1, v);
       }
       if let Some(v) = self.shape.as_ref() {
         let len = v.compute_size();
-        my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+        my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
       }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
       self.special_fields.cached_size().set(my_size as u32);
       my_size
     }
 
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-      if let Some(v) = self.elem_type {
-        os.write_int32(1, v)?;
-      }
-      if let Some(v) = self.shape.as_ref() {
-        ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-      }
-      os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -4334,16 +4627,16 @@ pub mod type_proto {
     }
 
     fn clear(&mut self) {
-      self.elem_type = ::std::option::Option::None;
+      self.elem_type = None;
       self.shape.clear();
       self.special_fields.clear();
     }
 
     fn default_instance() -> &'static Tensor {
       static instance: Tensor = Tensor {
-        elem_type: ::std::option::Option::None,
-        shape: ::protobuf::MessageField::none(),
-        special_fields: ::protobuf::SpecialFields::new(),
+        elem_type: None,
+        shape: protobuf::MessageField::none(),
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -4357,43 +4650,51 @@ pub mod type_proto {
     ///  The type and optional shape of each element of the sequence.
     ///  This field MUST be present for this version of the IR.
     // @@protoc_insertion_point(field:onnx.TypeProto.Sequence.elem_type)
-    pub elem_type: ::protobuf::MessageField<super::TypeProto>,
+    pub elem_type: protobuf::MessageField<super::TypeProto>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TypeProto.Sequence.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Sequence {
+  impl<'a> Default for &'a Sequence {
     fn default() -> &'a Sequence {
-      <Sequence as ::protobuf::Message>::default_instance()
+      <Sequence as protobuf::Message>::default_instance()
     }
   }
 
   impl Sequence {
     pub fn new() -> Sequence {
-      ::std::default::Default::default()
+      Default::default()
     }
   }
 
-  impl ::protobuf::Message for Sequence {
+  impl protobuf::Message for Sequence {
     const NAME: &'static str = "Sequence";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           10 => {
-            ::protobuf::rt::read_singular_message_into_field(is, &mut self.elem_type)?;
+            protobuf::rt::read_singular_message_into_field(is, &mut self.elem_type)?;
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+      if let Some(v) = self.elem_type.as_ref() {
+        protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+      }
+      os.write_unknown_fields(self.special_fields.unknown_fields())?;
+      Ok(())
     }
 
     // Compute sizes of nested messages
@@ -4402,26 +4703,18 @@ pub mod type_proto {
       let mut my_size = 0;
       if let Some(v) = self.elem_type.as_ref() {
         let len = v.compute_size();
-        my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+        my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
       }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
       self.special_fields.cached_size().set(my_size as u32);
       my_size
     }
 
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-      if let Some(v) = self.elem_type.as_ref() {
-        ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-      }
-      os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -4436,8 +4729,8 @@ pub mod type_proto {
 
     fn default_instance() -> &'static Sequence {
       static instance: Sequence = Sequence {
-        elem_type: ::protobuf::MessageField::none(),
-        special_fields: ::protobuf::SpecialFields::new(),
+        elem_type: protobuf::MessageField::none(),
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -4452,24 +4745,24 @@ pub mod type_proto {
     ///  This field MUST be present for this version of the IR.
     ///  This field MUST refer to an integral type ([U]INT{8|16|32|64}) or STRING
     // @@protoc_insertion_point(field:onnx.TypeProto.Map.key_type)
-    pub key_type: ::std::option::Option<i32>,
+    pub key_type: Option<i32>,
     ///  This field MUST be present for this version of the IR.
     // @@protoc_insertion_point(field:onnx.TypeProto.Map.value_type)
-    pub value_type: ::protobuf::MessageField<super::TypeProto>,
+    pub value_type: protobuf::MessageField<super::TypeProto>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TypeProto.Map.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Map {
+  impl<'a> Default for &'a Map {
     fn default() -> &'a Map {
-      <Map as ::protobuf::Message>::default_instance()
+      <Map as protobuf::Message>::default_instance()
     }
   }
 
   impl Map {
     pub fn new() -> Map {
-      ::std::default::Default::default()
+      Default::default()
     }
 
     // optional int32 key_type = 1;
@@ -4479,7 +4772,7 @@ pub mod type_proto {
     }
 
     pub fn clear_key_type(&mut self) {
-      self.key_type = ::std::option::Option::None;
+      self.key_type = None;
     }
 
     pub fn has_key_type(&self) -> bool {
@@ -4488,32 +4781,43 @@ pub mod type_proto {
 
     // Param is passed by value, moved
     pub fn set_key_type(&mut self, v: i32) {
-      self.key_type = ::std::option::Option::Some(v);
+      self.key_type = Some(v);
     }
   }
 
-  impl ::protobuf::Message for Map {
+  impl protobuf::Message for Map {
     const NAME: &'static str = "Map";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           8 => {
-            self.key_type = ::std::option::Option::Some(is.read_int32()?);
+            self.key_type = Some(is.read_int32()?);
           },
           18 => {
-            ::protobuf::rt::read_singular_message_into_field(is, &mut self.value_type)?;
+            protobuf::rt::read_singular_message_into_field(is, &mut self.value_type)?;
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+      if let Some(v) = self.key_type {
+        os.write_int32(1, v)?;
+      }
+      if let Some(v) = self.value_type.as_ref() {
+        protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+      }
+      os.write_unknown_fields(self.special_fields.unknown_fields())?;
+      Ok(())
     }
 
     // Compute sizes of nested messages
@@ -4521,33 +4825,22 @@ pub mod type_proto {
     fn compute_size(&self) -> u64 {
       let mut my_size = 0;
       if let Some(v) = self.key_type {
-        my_size += ::protobuf::rt::int32_size(1, v);
+        my_size += protobuf::rt::int32_size(1, v);
       }
       if let Some(v) = self.value_type.as_ref() {
         let len = v.compute_size();
-        my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+        my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
       }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
       self.special_fields.cached_size().set(my_size as u32);
       my_size
     }
 
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-      if let Some(v) = self.key_type {
-        os.write_int32(1, v)?;
-      }
-      if let Some(v) = self.value_type.as_ref() {
-        ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-      }
-      os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -4556,16 +4849,16 @@ pub mod type_proto {
     }
 
     fn clear(&mut self) {
-      self.key_type = ::std::option::Option::None;
+      self.key_type = None;
       self.value_type.clear();
       self.special_fields.clear();
     }
 
     fn default_instance() -> &'static Map {
       static instance: Map = Map {
-        key_type: ::std::option::Option::None,
-        value_type: ::protobuf::MessageField::none(),
-        special_fields: ::protobuf::SpecialFields::new(),
+        key_type: None,
+        value_type: protobuf::MessageField::none(),
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -4580,43 +4873,51 @@ pub mod type_proto {
     ///  This field MUST be present for this version of the IR.
     ///  Possible values correspond to OptionalProto.DataType enum
     // @@protoc_insertion_point(field:onnx.TypeProto.Optional.elem_type)
-    pub elem_type: ::protobuf::MessageField<super::TypeProto>,
+    pub elem_type: protobuf::MessageField<super::TypeProto>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TypeProto.Optional.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a Optional {
+  impl<'a> Default for &'a Optional {
     fn default() -> &'a Optional {
-      <Optional as ::protobuf::Message>::default_instance()
+      <Optional as protobuf::Message>::default_instance()
     }
   }
 
   impl Optional {
     pub fn new() -> Optional {
-      ::std::default::Default::default()
+      Default::default()
     }
   }
 
-  impl ::protobuf::Message for Optional {
+  impl protobuf::Message for Optional {
     const NAME: &'static str = "Optional";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           10 => {
-            ::protobuf::rt::read_singular_message_into_field(is, &mut self.elem_type)?;
+            protobuf::rt::read_singular_message_into_field(is, &mut self.elem_type)?;
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+      if let Some(v) = self.elem_type.as_ref() {
+        protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
+      }
+      os.write_unknown_fields(self.special_fields.unknown_fields())?;
+      Ok(())
     }
 
     // Compute sizes of nested messages
@@ -4625,26 +4926,18 @@ pub mod type_proto {
       let mut my_size = 0;
       if let Some(v) = self.elem_type.as_ref() {
         let len = v.compute_size();
-        my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+        my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
       }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
       self.special_fields.cached_size().set(my_size as u32);
       my_size
     }
 
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-      if let Some(v) = self.elem_type.as_ref() {
-        ::protobuf::rt::write_message_field_with_cached_size(1, v, os)?;
-      }
-      os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -4659,8 +4952,8 @@ pub mod type_proto {
 
     fn default_instance() -> &'static Optional {
       static instance: Optional = Optional {
-        elem_type: ::protobuf::MessageField::none(),
-        special_fields: ::protobuf::SpecialFields::new(),
+        elem_type: protobuf::MessageField::none(),
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -4674,23 +4967,23 @@ pub mod type_proto {
     ///  This field MUST have a valid TensorProto.DataType value
     ///  This field MUST be present for this version of the IR.
     // @@protoc_insertion_point(field:onnx.TypeProto.SparseTensor.elem_type)
-    pub elem_type: ::std::option::Option<i32>,
+    pub elem_type: Option<i32>,
     // @@protoc_insertion_point(field:onnx.TypeProto.SparseTensor.shape)
-    pub shape: ::protobuf::MessageField<super::TensorShapeProto>,
+    pub shape: protobuf::MessageField<super::TensorShapeProto>,
     // special fields
     // @@protoc_insertion_point(special_field:onnx.TypeProto.SparseTensor.special_fields)
-    pub special_fields: ::protobuf::SpecialFields,
+    pub special_fields: protobuf::SpecialFields,
   }
 
-  impl<'a> ::std::default::Default for &'a SparseTensor {
+  impl<'a> Default for &'a SparseTensor {
     fn default() -> &'a SparseTensor {
-      <SparseTensor as ::protobuf::Message>::default_instance()
+      <SparseTensor as protobuf::Message>::default_instance()
     }
   }
 
   impl SparseTensor {
     pub fn new() -> SparseTensor {
-      ::std::default::Default::default()
+      Default::default()
     }
 
     // optional int32 elem_type = 1;
@@ -4700,7 +4993,7 @@ pub mod type_proto {
     }
 
     pub fn clear_elem_type(&mut self) {
-      self.elem_type = ::std::option::Option::None;
+      self.elem_type = None;
     }
 
     pub fn has_elem_type(&self) -> bool {
@@ -4709,32 +5002,43 @@ pub mod type_proto {
 
     // Param is passed by value, moved
     pub fn set_elem_type(&mut self, v: i32) {
-      self.elem_type = ::std::option::Option::Some(v);
+      self.elem_type = Some(v);
     }
   }
 
-  impl ::protobuf::Message for SparseTensor {
+  impl protobuf::Message for SparseTensor {
     const NAME: &'static str = "SparseTensor";
 
     fn is_initialized(&self) -> bool {
       true
     }
 
-    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+    fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
       while let Some(tag) = is.read_raw_tag_or_eof()? {
         match tag {
           8 => {
-            self.elem_type = ::std::option::Option::Some(is.read_int32()?);
+            self.elem_type = Some(is.read_int32()?);
           },
           18 => {
-            ::protobuf::rt::read_singular_message_into_field(is, &mut self.shape)?;
+            protobuf::rt::read_singular_message_into_field(is, &mut self.shape)?;
           },
           tag => {
-            ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+            protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
           },
         };
       }
-      ::std::result::Result::Ok(())
+      Ok(())
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
+      if let Some(v) = self.elem_type {
+        os.write_int32(1, v)?;
+      }
+      if let Some(v) = self.shape.as_ref() {
+        protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
+      }
+      os.write_unknown_fields(self.special_fields.unknown_fields())?;
+      Ok(())
     }
 
     // Compute sizes of nested messages
@@ -4742,33 +5046,22 @@ pub mod type_proto {
     fn compute_size(&self) -> u64 {
       let mut my_size = 0;
       if let Some(v) = self.elem_type {
-        my_size += ::protobuf::rt::int32_size(1, v);
+        my_size += protobuf::rt::int32_size(1, v);
       }
       if let Some(v) = self.shape.as_ref() {
         let len = v.compute_size();
-        my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
+        my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
       }
-      my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+      my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
       self.special_fields.cached_size().set(my_size as u32);
       my_size
     }
 
-    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
-      if let Some(v) = self.elem_type {
-        os.write_int32(1, v)?;
-      }
-      if let Some(v) = self.shape.as_ref() {
-        ::protobuf::rt::write_message_field_with_cached_size(2, v, os)?;
-      }
-      os.write_unknown_fields(self.special_fields.unknown_fields())?;
-      ::std::result::Result::Ok(())
-    }
-
-    fn special_fields(&self) -> &::protobuf::SpecialFields {
+    fn special_fields(&self) -> &protobuf::SpecialFields {
       &self.special_fields
     }
 
-    fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+    fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
       &mut self.special_fields
     }
 
@@ -4777,16 +5070,16 @@ pub mod type_proto {
     }
 
     fn clear(&mut self) {
-      self.elem_type = ::std::option::Option::None;
+      self.elem_type = None;
       self.shape.clear();
       self.special_fields.clear();
     }
 
     fn default_instance() -> &'static SparseTensor {
       static instance: SparseTensor = SparseTensor {
-        elem_type: ::std::option::Option::None,
-        shape: ::protobuf::MessageField::none(),
-        special_fields: ::protobuf::SpecialFields::new(),
+        elem_type: None,
+        shape: protobuf::MessageField::none(),
+        special_fields: protobuf::SpecialFields::new(),
       };
       &instance
     }
@@ -4805,29 +5098,41 @@ pub struct OperatorSetIdProto {
   ///  set that is defined as part of the ONNX specification.
   ///  This field MUST be present in this version of the IR when referring to any other operator set.
   // @@protoc_insertion_point(field:onnx.OperatorSetIdProto.domain)
-  pub domain: ::std::option::Option<::std::string::String>,
+  pub domain: Option<String>,
   ///  The version of the operator set being identified.
   ///  This field MUST be present in this version of the IR.
   // @@protoc_insertion_point(field:onnx.OperatorSetIdProto.version)
-  pub version: ::std::option::Option<i64>,
+  pub version: Option<i64>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.OperatorSetIdProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a OperatorSetIdProto {
+impl<'a> Default for &'a OperatorSetIdProto {
   fn default() -> &'a OperatorSetIdProto {
-    <OperatorSetIdProto as ::protobuf::Message>::default_instance()
+    <OperatorSetIdProto as protobuf::Message>::default_instance()
   }
 }
 
 impl OperatorSetIdProto {
   pub fn new() -> OperatorSetIdProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, /*unused*/ _new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of operator_set_id_proto
+      match attribute_name {
+        "domain" => self.set_domain(attribute_value.to_string()),
+        "version" => self.set_version(attribute_value.into()),
+        "special_fields" => {},
+        _ => panic!("OPERATORSETIDPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    }else{
+      panic!("OPERATORSETIDPROTO dispatcher complex types not allowed!: {:?}", structure_path)
+    }
   }
 
   // optional string domain = 1;
-
   pub fn domain(&self) -> &str {
     match self.domain.as_ref() {
       Some(v) => v,
@@ -4836,7 +5141,7 @@ impl OperatorSetIdProto {
   }
 
   pub fn clear_domain(&mut self) {
-    self.domain = ::std::option::Option::None;
+    self.domain = None;
   }
 
   pub fn has_domain(&self) -> bool {
@@ -4844,22 +5149,22 @@ impl OperatorSetIdProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_domain(&mut self, v: ::std::string::String) {
-    self.domain = ::std::option::Option::Some(v);
+  pub fn set_domain(&mut self, v: String) {
+    self.domain = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_domain(&mut self) -> &mut ::std::string::String {
+  pub fn mut_domain(&mut self) -> &mut String {
     if self.domain.is_none() {
-      self.domain = ::std::option::Option::Some(::std::string::String::new());
+      self.domain = Some(String::new());
     }
     self.domain.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_domain(&mut self) -> ::std::string::String {
-    self.domain.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_domain(&mut self) -> String {
+    self.domain.take().unwrap_or_else(|| String::new())
   }
 
   // optional int64 version = 2;
@@ -4869,7 +5174,7 @@ impl OperatorSetIdProto {
   }
 
   pub fn clear_version(&mut self) {
-    self.version = ::std::option::Option::None;
+    self.version = None;
   }
 
   pub fn has_version(&self) -> bool {
@@ -4878,50 +5183,35 @@ impl OperatorSetIdProto {
 
   // Param is passed by value, moved
   pub fn set_version(&mut self, v: i64) {
-    self.version = ::std::option::Option::Some(v);
+    self.version = Some(v);
   }
 }
 
-impl ::protobuf::Message for OperatorSetIdProto {
+impl protobuf::Message for OperatorSetIdProto {
   const NAME: &'static str = "OperatorSetIdProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.domain = ::std::option::Option::Some(is.read_string()?);
+          self.domain = Some(is.read_string()?);
         },
         16 => {
-          self.version = ::std::option::Option::Some(is.read_int64()?);
+          self.version = Some(is.read_int64()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    if let Some(v) = self.domain.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
-    }
-    if let Some(v) = self.version {
-      my_size += ::protobuf::rt::int64_size(2, v);
-    }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     if let Some(v) = self.domain.as_ref() {
       os.write_string(1, v)?;
     }
@@ -4929,14 +5219,29 @@ impl ::protobuf::Message for OperatorSetIdProto {
       os.write_int64(2, v)?;
     }
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    if let Some(v) = self.domain.as_ref() {
+      my_size += protobuf::rt::string_size(1, &v);
+    }
+    if let Some(v) = self.version {
+      my_size += protobuf::rt::int64_size(2, v);
+    }
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -4945,16 +5250,16 @@ impl ::protobuf::Message for OperatorSetIdProto {
   }
 
   fn clear(&mut self) {
-    self.domain = ::std::option::Option::None;
-    self.version = ::std::option::Option::None;
+    self.domain = None;
+    self.version = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static OperatorSetIdProto {
     static instance: OperatorSetIdProto = OperatorSetIdProto {
-      domain: ::std::option::Option::None,
-      version: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      domain: None,
+      version: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -4968,52 +5273,92 @@ pub struct FunctionProto {
   ///  Combined with FunctionProto.domain, this forms the unique identity of
   ///  the FunctionProto.
   // @@protoc_insertion_point(field:onnx.FunctionProto.name)
-  pub name: ::std::option::Option<::std::string::String>,
+  pub name: Option<String>,
   ///  The inputs and outputs of the function.
   // @@protoc_insertion_point(field:onnx.FunctionProto.input)
-  pub input: ::std::vec::Vec<::std::string::String>,
+  pub input: Vec<String>,
   // @@protoc_insertion_point(field:onnx.FunctionProto.output)
-  pub output: ::std::vec::Vec<::std::string::String>,
+  pub output: Vec<String>,
   ///  The attribute parameters of the function.
   ///  It is for function parameters without default values.
   // @@protoc_insertion_point(field:onnx.FunctionProto.attribute)
-  pub attribute: ::std::vec::Vec<::std::string::String>,
+  pub attribute: Vec<String>,
   ///  The attribute protos of the function.
   ///  It is for function attributes with default values.
   ///  A function attribute shall be represented either as
   ///  a string attribute or an AttributeProto, not both.
   // @@protoc_insertion_point(field:onnx.FunctionProto.attribute_proto)
-  pub attribute_proto: ::std::vec::Vec<AttributeProto>,
+  pub attribute_proto: Vec<AttributeProto>,
   ///  The nodes in the function.
   // @@protoc_insertion_point(field:onnx.FunctionProto.node)
-  pub node: ::std::vec::Vec<NodeProto>,
+  pub node: Vec<NodeProto>,
   ///  A human-readable documentation for this function. Markdown is allowed.
   // @@protoc_insertion_point(field:onnx.FunctionProto.doc_string)
-  pub doc_string: ::std::option::Option<::std::string::String>,
+  pub doc_string: Option<String>,
   // @@protoc_insertion_point(field:onnx.FunctionProto.opset_import)
-  pub opset_import: ::std::vec::Vec<OperatorSetIdProto>,
+  pub opset_import: Vec<OperatorSetIdProto>,
   ///  The domain which this function belongs to. Combined with FunctionProto.name, this forms the unique identity of
   ///  the FunctionProto.
   // @@protoc_insertion_point(field:onnx.FunctionProto.domain)
-  pub domain: ::std::option::Option<::std::string::String>,
+  pub domain: Option<String>,
   // special fields
   // @@protoc_insertion_point(special_field:onnx.FunctionProto.special_fields)
-  pub special_fields: ::protobuf::SpecialFields,
+  pub special_fields: protobuf::SpecialFields,
 }
 
-impl<'a> ::std::default::Default for &'a FunctionProto {
+impl<'a> Default for &'a FunctionProto {
   fn default() -> &'a FunctionProto {
-    <FunctionProto as ::protobuf::Message>::default_instance()
+    <FunctionProto as protobuf::Message>::default_instance()
   }
 }
 
 impl FunctionProto {
   pub fn new() -> FunctionProto {
-    ::std::default::Default::default()
+    Default::default()
+  }
+
+  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of function_proto
+      match attribute_name {
+        "name" => self.set_name(attribute_value.to_string()),
+        "input" => self.input.push(attribute_value.to_string()),
+        "output" => self.output.push(attribute_value.to_string()),
+        "attribute" => self.attribute.push(attribute_value.to_string()),
+        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "domain" => self.set_domain((attribute_value.to_string())),
+        "special_fields" => {},
+        _ => panic!("FUNCTIONPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    } else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "attributeproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.attribute_proto.push(AttributeProto::default());
+          } else {
+            self.attribute_proto.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "nodeproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.node.push(NodeProto::default());
+          } else {
+            self.node.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        "operatorsetidproto" => {
+          if new_structure_to_add && structure_path.len() == 1 {
+            self.opset_import.push(OperatorSetIdProto::default());
+          } else {
+            self.opset_import.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+          }
+        },
+        _ => panic!("FUNCTIONPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
   }
 
   // optional string name = 1;
-
   pub fn name(&self) -> &str {
     match self.name.as_ref() {
       Some(v) => v,
@@ -5022,7 +5367,7 @@ impl FunctionProto {
   }
 
   pub fn clear_name(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
   }
 
   pub fn has_name(&self) -> bool {
@@ -5030,22 +5375,22 @@ impl FunctionProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_name(&mut self, v: ::std::string::String) {
-    self.name = ::std::option::Option::Some(v);
+  pub fn set_name(&mut self, v: String) {
+    self.name = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_name(&mut self) -> &mut ::std::string::String {
+  pub fn mut_name(&mut self) -> &mut String {
     if self.name.is_none() {
-      self.name = ::std::option::Option::Some(::std::string::String::new());
+      self.name = Some(String::new());
     }
     self.name.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_name(&mut self) -> ::std::string::String {
-    self.name.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_name(&mut self) -> String {
+    self.name.take().unwrap_or_else(|| String::new())
   }
 
   // optional string doc_string = 8;
@@ -5058,7 +5403,7 @@ impl FunctionProto {
   }
 
   pub fn clear_doc_string(&mut self) {
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
   }
 
   pub fn has_doc_string(&self) -> bool {
@@ -5066,22 +5411,22 @@ impl FunctionProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_doc_string(&mut self, v: ::std::string::String) {
-    self.doc_string = ::std::option::Option::Some(v);
+  pub fn set_doc_string(&mut self, v: String) {
+    self.doc_string = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_doc_string(&mut self) -> &mut ::std::string::String {
+  pub fn mut_doc_string(&mut self) -> &mut String {
     if self.doc_string.is_none() {
-      self.doc_string = ::std::option::Option::Some(::std::string::String::new());
+      self.doc_string = Some(String::new());
     }
     self.doc_string.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_doc_string(&mut self) -> ::std::string::String {
-    self.doc_string.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_doc_string(&mut self) -> String {
+    self.doc_string.take().unwrap_or_else(|| String::new())
   }
 
   // optional string domain = 10;
@@ -5094,7 +5439,7 @@ impl FunctionProto {
   }
 
   pub fn clear_domain(&mut self) {
-    self.domain = ::std::option::Option::None;
+    self.domain = None;
   }
 
   pub fn has_domain(&self) -> bool {
@@ -5102,37 +5447,37 @@ impl FunctionProto {
   }
 
   // Param is passed by value, moved
-  pub fn set_domain(&mut self, v: ::std::string::String) {
-    self.domain = ::std::option::Option::Some(v);
+  pub fn set_domain(&mut self, v: String) {
+    self.domain = Some(v);
   }
 
   // Mutable pointer to the field.
   // If field is not initialized, it is initialized with default value first.
-  pub fn mut_domain(&mut self) -> &mut ::std::string::String {
+  pub fn mut_domain(&mut self) -> &mut String {
     if self.domain.is_none() {
-      self.domain = ::std::option::Option::Some(::std::string::String::new());
+      self.domain = Some(String::new());
     }
     self.domain.as_mut().unwrap()
   }
 
   // Take field
-  pub fn take_domain(&mut self) -> ::std::string::String {
-    self.domain.take().unwrap_or_else(|| ::std::string::String::new())
+  pub fn take_domain(&mut self) -> String {
+    self.domain.take().unwrap_or_else(|| String::new())
   }
 }
 
-impl ::protobuf::Message for FunctionProto {
+impl protobuf::Message for FunctionProto {
   const NAME: &'static str = "FunctionProto";
 
   fn is_initialized(&self) -> bool {
     true
   }
 
-  fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream<'_>) -> ::protobuf::Result<()> {
+  fn merge_from(&mut self, is: &mut protobuf::CodedInputStream<'_>) -> protobuf::Result<()> {
     while let Some(tag) = is.read_raw_tag_or_eof()? {
       match tag {
         10 => {
-          self.name = ::std::option::Option::Some(is.read_string()?);
+          self.name = Some(is.read_string()?);
         },
         34 => {
           self.input.push(is.read_string()?);
@@ -5150,62 +5495,23 @@ impl ::protobuf::Message for FunctionProto {
           self.node.push(is.read_message()?);
         },
         66 => {
-          self.doc_string = ::std::option::Option::Some(is.read_string()?);
+          self.doc_string = Some(is.read_string()?);
         },
         74 => {
           self.opset_import.push(is.read_message()?);
         },
         82 => {
-          self.domain = ::std::option::Option::Some(is.read_string()?);
+          self.domain = Some(is.read_string()?);
         },
         tag => {
-          ::protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
+          protobuf::rt::read_unknown_or_skip_group(tag, is, self.special_fields.mut_unknown_fields())?;
         },
       };
     }
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  // Compute sizes of nested messages
-  #[allow(unused_variables)]
-  fn compute_size(&self) -> u64 {
-    let mut my_size = 0;
-    if let Some(v) = self.name.as_ref() {
-      my_size += ::protobuf::rt::string_size(1, &v);
-    }
-    for value in &self.input {
-      my_size += ::protobuf::rt::string_size(4, &value);
-    };
-    for value in &self.output {
-      my_size += ::protobuf::rt::string_size(5, &value);
-    };
-    for value in &self.attribute {
-      my_size += ::protobuf::rt::string_size(6, &value);
-    };
-    for value in &self.attribute_proto {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    for value in &self.node {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    if let Some(v) = self.doc_string.as_ref() {
-      my_size += ::protobuf::rt::string_size(8, &v);
-    }
-    for value in &self.opset_import {
-      let len = value.compute_size();
-      my_size += 1 + ::protobuf::rt::compute_raw_varint64_size(len) + len;
-    };
-    if let Some(v) = self.domain.as_ref() {
-      my_size += ::protobuf::rt::string_size(10, &v);
-    }
-    my_size += ::protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
-    self.special_fields.cached_size().set(my_size as u32);
-    my_size
-  }
-
-  fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream<'_>) -> ::protobuf::Result<()> {
+  fn write_to_with_cached_sizes(&self, os: &mut protobuf::CodedOutputStream<'_>) -> protobuf::Result<()> {
     if let Some(v) = self.name.as_ref() {
       os.write_string(1, v)?;
     }
@@ -5219,29 +5525,68 @@ impl ::protobuf::Message for FunctionProto {
       os.write_string(6, &v)?;
     };
     for v in &self.attribute_proto {
-      ::protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(11, v, os)?;
     };
     for v in &self.node {
-      ::protobuf::rt::write_message_field_with_cached_size(7, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(7, v, os)?;
     };
     if let Some(v) = self.doc_string.as_ref() {
       os.write_string(8, v)?;
     }
     for v in &self.opset_import {
-      ::protobuf::rt::write_message_field_with_cached_size(9, v, os)?;
+      protobuf::rt::write_message_field_with_cached_size(9, v, os)?;
     };
     if let Some(v) = self.domain.as_ref() {
       os.write_string(10, v)?;
     }
     os.write_unknown_fields(self.special_fields.unknown_fields())?;
-    ::std::result::Result::Ok(())
+    Ok(())
   }
 
-  fn special_fields(&self) -> &::protobuf::SpecialFields {
+  // Compute sizes of nested messages
+  #[allow(unused_variables)]
+  fn compute_size(&self) -> u64 {
+    let mut my_size = 0;
+    if let Some(v) = self.name.as_ref() {
+      my_size += protobuf::rt::string_size(1, &v);
+    }
+    for value in &self.input {
+      my_size += protobuf::rt::string_size(4, &value);
+    };
+    for value in &self.output {
+      my_size += protobuf::rt::string_size(5, &value);
+    };
+    for value in &self.attribute {
+      my_size += protobuf::rt::string_size(6, &value);
+    };
+    for value in &self.attribute_proto {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    for value in &self.node {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    if let Some(v) = self.doc_string.as_ref() {
+      my_size += protobuf::rt::string_size(8, &v);
+    }
+    for value in &self.opset_import {
+      let len = value.compute_size();
+      my_size += 1 + protobuf::rt::compute_raw_varint64_size(len) + len;
+    };
+    if let Some(v) = self.domain.as_ref() {
+      my_size += protobuf::rt::string_size(10, &v);
+    }
+    my_size += protobuf::rt::unknown_fields_size(self.special_fields.unknown_fields());
+    self.special_fields.cached_size().set(my_size as u32);
+    my_size
+  }
+
+  fn special_fields(&self) -> &protobuf::SpecialFields {
     &self.special_fields
   }
 
-  fn mut_special_fields(&mut self) -> &mut ::protobuf::SpecialFields {
+  fn mut_special_fields(&mut self) -> &mut protobuf::SpecialFields {
     &mut self.special_fields
   }
 
@@ -5250,30 +5595,30 @@ impl ::protobuf::Message for FunctionProto {
   }
 
   fn clear(&mut self) {
-    self.name = ::std::option::Option::None;
+    self.name = None;
     self.input.clear();
     self.output.clear();
     self.attribute.clear();
     self.attribute_proto.clear();
     self.node.clear();
-    self.doc_string = ::std::option::Option::None;
+    self.doc_string = None;
     self.opset_import.clear();
-    self.domain = ::std::option::Option::None;
+    self.domain = None;
     self.special_fields.clear();
   }
 
   fn default_instance() -> &'static FunctionProto {
     static instance: FunctionProto = FunctionProto {
-      name: ::std::option::Option::None,
-      input: ::std::vec::Vec::new(),
-      output: ::std::vec::Vec::new(),
-      attribute: ::std::vec::Vec::new(),
-      attribute_proto: ::std::vec::Vec::new(),
-      node: ::std::vec::Vec::new(),
-      doc_string: ::std::option::Option::None,
-      opset_import: ::std::vec::Vec::new(),
-      domain: ::std::option::Option::None,
-      special_fields: ::protobuf::SpecialFields::new(),
+      name: None,
+      input: Vec::new(),
+      output: Vec::new(),
+      attribute: Vec::new(),
+      attribute_proto: Vec::new(),
+      node: Vec::new(),
+      doc_string: None,
+      opset_import: Vec::new(),
+      domain: None,
+      special_fields: protobuf::SpecialFields::new(),
     };
     &instance
   }
@@ -5310,26 +5655,26 @@ pub enum Version {
   IR_VERSION = 9,
 }
 
-impl ::protobuf::Enum for Version {
+impl protobuf::Enum for Version {
   const NAME: &'static str = "Version";
 
   fn value(&self) -> i32 {
     *self as i32
   }
 
-  fn from_i32(value: i32) -> ::std::option::Option<Version> {
+  fn from_i32(value: i32) -> Option<Version> {
     match value {
-      0 => ::std::option::Option::Some(Version::_START_VERSION),
-      1 => ::std::option::Option::Some(Version::IR_VERSION_2017_10_10),
-      2 => ::std::option::Option::Some(Version::IR_VERSION_2017_10_30),
-      3 => ::std::option::Option::Some(Version::IR_VERSION_2017_11_3),
-      4 => ::std::option::Option::Some(Version::IR_VERSION_2019_1_22),
-      5 => ::std::option::Option::Some(Version::IR_VERSION_2019_3_18),
-      6 => ::std::option::Option::Some(Version::IR_VERSION_2019_9_19),
-      7 => ::std::option::Option::Some(Version::IR_VERSION_2020_5_8),
-      8 => ::std::option::Option::Some(Version::IR_VERSION_2021_7_30),
-      9 => ::std::option::Option::Some(Version::IR_VERSION),
-      _ => ::std::option::Option::None
+      0 => Some(Version::_START_VERSION),
+      1 => Some(Version::IR_VERSION_2017_10_10),
+      2 => Some(Version::IR_VERSION_2017_10_30),
+      3 => Some(Version::IR_VERSION_2017_11_3),
+      4 => Some(Version::IR_VERSION_2019_1_22),
+      5 => Some(Version::IR_VERSION_2019_3_18),
+      6 => Some(Version::IR_VERSION_2019_9_19),
+      7 => Some(Version::IR_VERSION_2020_5_8),
+      8 => Some(Version::IR_VERSION_2021_7_30),
+      9 => Some(Version::IR_VERSION),
+      _ => None
     }
   }
 
@@ -5347,7 +5692,7 @@ impl ::protobuf::Enum for Version {
   ];
 }
 
-impl ::std::default::Default for Version {
+impl Default for Version {
   fn default() -> Self {
     Version::_START_VERSION
   }
@@ -5364,18 +5709,18 @@ pub enum OperatorStatus {
   STABLE = 1,
 }
 
-impl ::protobuf::Enum for OperatorStatus {
+impl protobuf::Enum for OperatorStatus {
   const NAME: &'static str = "OperatorStatus";
 
   fn value(&self) -> i32 {
     *self as i32
   }
 
-  fn from_i32(value: i32) -> ::std::option::Option<OperatorStatus> {
+  fn from_i32(value: i32) -> Option<OperatorStatus> {
     match value {
-      0 => ::std::option::Option::Some(OperatorStatus::EXPERIMENTAL),
-      1 => ::std::option::Option::Some(OperatorStatus::STABLE),
-      _ => ::std::option::Option::None
+      0 => Some(OperatorStatus::EXPERIMENTAL),
+      1 => Some(OperatorStatus::STABLE),
+      _ => None
     }
   }
 
@@ -5385,7 +5730,7 @@ impl ::protobuf::Enum for OperatorStatus {
   ];
 }
 
-impl ::std::default::Default for OperatorStatus {
+impl Default for OperatorStatus {
   fn default() -> Self {
     OperatorStatus::EXPERIMENTAL
   }
