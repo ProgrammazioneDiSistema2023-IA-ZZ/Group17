@@ -20,8 +20,18 @@
 #![allow(unused_mut)]
 
 //! Generated file from `proto/onnx.proto`
+use protobuf::MessageField;
 use crate::onnx_structure::attribute_proto::AttributeType;
-use num_traits::{AsPrimitive, Num};
+
+pub fn current_structure_search(current_structure: &[String], len: usize) -> String{
+  if current_structure.len() < len{
+    panic!("cannot get {}-nth element of current_structure which contains {:?}", len, current_structure);
+  }
+  match current_structure.get(current_structure.len()-len){
+    Some(s) => s.clone(),
+    None => panic!("cannot get {}-nth element of current_structure which contains {:?}", current_structure.len()-len, current_structure)
+  }
+}
 
 // Generated for lite runtime
 /// Generated files are compatible only with the same version
@@ -105,25 +115,25 @@ impl AttributeProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of attribute_proto
       match attribute_name {
-        "name" => self.set_name(attribute_value.to_string()),
-        "ref_attr_name" => self.set_ref_attr_name(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
-        "f" => self.set_f(attribute_value.into()),
-        "i" => self.set_i(attribute_value.into()),
-        "s" => self.set_s(Vec::from(attribute_value.to_string())),
-        "floats" => self.floats.push(attribute_value.into()),
-        "ints" => self.ints.push(attribute_value.into()),
-        "strings" => self.strings.push(Vec::from(attribute_value.to_string())),
+        "name" => self.set_name(string_value),
+        "ref_attr_name" => self.set_ref_attr_name(string_value),
+        "doc_string" => self.set_doc_string(string_value),
+        "f" => self.set_f(float_value),
+        "i" => self.set_i(integer_value.into()),
+        "s" => self.set_s(Vec::from(string_value)),
+        "floats" => self.floats.push(float_value),
+        "ints" => self.ints.push(integer_value.into()),
+        "strings" => self.strings.push(Vec::from(string_value)),
         "special_fields" => {},
         _ => panic!("ATTRIBUTEPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
     }else { //complex types, here starts the dispatch recursion.
       let next_child_to_dispatch = structure_path.get(0).unwrap();
       match next_child_to_dispatch.as_str() {
-        "attributetype" => { },//self.type_.dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "attributetype" => { },//self.type_.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
         "tensorproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             match attribute_name{
@@ -132,8 +142,8 @@ impl AttributeProto {
             }
           } else {
             match attribute_name{
-              "t" => self.t.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "tensors" => self.tensors.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "t" => self.t.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "tensors" => self.tensors.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
               _ => panic!("ATTTRIBUTEPROTO -> tensorproto: attribute name Dispatch cannot be done; it does not match any TensorProto structure: {}", attribute_name)
             }
           }
@@ -146,8 +156,8 @@ impl AttributeProto {
             }
           } else {
             match attribute_name{
-              "g" => self.g.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "graphs" => self.graphs.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "g" => self.g.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "graphs" => self.graphs.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
               _ => panic!("ATTTRIBUTEPROTO -> graphproto: attribute name Dispatch cannot be done; it does not match any GraphProto structure: {}", attribute_name)
             }
           }
@@ -160,8 +170,8 @@ impl AttributeProto {
             }
           } else {
             match attribute_name{
-              "sparse_tensor" => self.sparse_tensor.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "sparse_tensors" => self.sparse_tensors.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "sparse_tensor" => self.sparse_tensor.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "sparse_tensors" => self.sparse_tensors.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
               _ => panic!("ATTTRIBUTEPROTO -> sparsetensorproto: attribute name Dispatch cannot be done; it does not match any SparseTensorProto structure: {}", attribute_name)
             }
           }
@@ -174,8 +184,8 @@ impl AttributeProto {
             }
           } else {
             match attribute_name{
-              "tp" => self.tp.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "type_protos" => self.type_protos.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "tp" => self.tp.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "type_protos" => self.type_protos.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
               _ => panic!("ATTTRIBUTEPROTO -> typeproto: attribute name Dispatch cannot be done; it does not match any TypeProto structure: {}", attribute_name)
             }
           }
@@ -781,18 +791,23 @@ impl ValueInfoProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of value_info_proto
       match attribute_name {
-        "name" => self.set_name(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "name" => self.set_name(string_value),
+        "doc_string" => self.set_doc_string(string_value),
         "special_fields" => {},
         _ => panic!("VALUEINFOPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
     }else { //complex types, here starts the dispatch recursion.
       let next_child_to_dispatch = structure_path.get(0).unwrap();
       match next_child_to_dispatch.as_str() {
-        "typeproto" => self.type_.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "typeproto" => {
+          match self.type_.as_mut() {
+            None => self.type_ = MessageField::some(TypeProto::new()),
+            Some(t) => t.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+          }
+        }
         _ => panic!("VALUEINFOPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
       }
     }
@@ -1007,15 +1022,15 @@ impl NodeProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of node_proto
       match attribute_name {
-        "input" => self.input.push(attribute_value.to_string()),
-        "output" => self.output.push(attribute_value.to_string()),
-        "name" => self.set_name(attribute_value.to_string()),
-        "op_type" => self.set_op_type(attribute_value.to_string()),
-        "domain" => self.set_domain(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "input" => self.input.push(string_value),
+        "output" => self.output.push(string_value),
+        "name" => self.set_name(string_value),
+        "op_type" => self.set_op_type(string_value),
+        "domain" => self.set_domain(string_value),
+        "doc_string" => self.set_doc_string(string_value),
         "special_fields" => {},
         _ => panic!("NODEPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -1026,7 +1041,7 @@ impl NodeProto {
           if new_structure_to_add && structure_path.len() == 1 {
             self.attribute.push(AttributeProto::default());
           } else {
-            self.attribute.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.attribute.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         }
         _ => panic!("NODEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
@@ -1379,7 +1394,7 @@ impl TrainingInfoProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of training_info_proto
       match attribute_name {
         "special_fields" => {},
@@ -1390,8 +1405,8 @@ impl TrainingInfoProto {
       match next_child_to_dispatch.as_str(){
         "graphproto" => {
           match attribute_name{
-            "initialization" => self.initialization.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-            "algorithm" => self.algorithm.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            "initialization" => self.initialization.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+            "algorithm" => self.algorithm.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
             _ => panic!("TRAININGINFOPROTO -> graphproto: attribute name not found!: {}", attribute_name)
           }
         },
@@ -1404,8 +1419,8 @@ impl TrainingInfoProto {
             }
           }else{
             match attribute_name{
-              "initialization_binding" => self.initialization_binding.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "update_binding" => self.update_binding.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+              "initialization_binding" => self.initialization_binding.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "update_binding" => self.update_binding.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
               _ => panic!("TRAININGINFOPROTO -> stringstringentryproto: cannot dispatch element: {}; not found.", attribute_name)
             }
           }
@@ -1622,15 +1637,15 @@ impl ModelProto
   /*
   new_structure_to_add: true only when a new structure is found from the reading of the .onnx and so needs to be added
   */
-  pub(crate) fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of model_proto
       match attribute_name {
-        "ir_version" => self.set_ir_version(attribute_value.into()),
-        "producer_name" => self.set_producer_name(attribute_value.to_string()),
-        "producer_version" => self.set_producer_version((attribute_value.to_string())),
-        "domain" => self.set_domain(attribute_value.to_string()),
-        "model_version" => self.set_model_version(attribute_value.into()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "ir_version" => self.set_ir_version(integer_value.into()),
+        "producer_name" => self.set_producer_name(string_value),
+        "producer_version" => self.set_producer_version(string_value),
+        "domain" => self.set_domain(string_value),
+        "model_version" => self.set_model_version(integer_value.into()),
+        "doc_string" => self.set_doc_string(string_value),
         "special_fields" => {},
         _ => panic!("MODELPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -1641,29 +1656,34 @@ impl ModelProto
           if new_structure_to_add && structure_path.len() == 1{
             self.opset_import.push(OperatorSetIdProto::default());
           }else{
-            self.opset_import.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.opset_import.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
-        "graphproto" => self.graph.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "graphproto" => {
+          match self.graph.as_mut() {
+            None => self.graph = MessageField::some(GraphProto::new()),
+            Some(g) => g.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+          }
+        },
         "stringstringentryproto" => {
           if new_structure_to_add && structure_path.len() == 1{
             self.metadata_props.push(StringStringEntryProto::default());
           }else{
-            self.metadata_props.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.metadata_props.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "traininginfoproto" => {
           if new_structure_to_add && structure_path.len() == 1{
             self.training_info.push(TrainingInfoProto::default());
           }else{
-            self.training_info.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.training_info.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "functionproto" => {
           if new_structure_to_add && structure_path.len() == 1{
             self.functions.push(FunctionProto::default());
           }else{
-            self.functions.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.functions.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         _ => panic!("MODELPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
@@ -2061,11 +2081,11 @@ impl StringStringEntryProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, /*unused*/ _new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, /*unused*/ _integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of string_string_entry_proto
       match attribute_name {
-        "key" => self.set_key(attribute_value.to_string()),
-        "value" => self.set_value(attribute_value.to_string()),
+        "key" => self.set_key(string_value),
+        "value" => self.set_value(string_value),
         "special_fields" => {},
         _ => panic!("STRINGSTRINGENTRYPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -2427,11 +2447,11 @@ impl GraphProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of graph_proto
       match attribute_name {
-        "name" => self.set_name(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
+        "name" => self.set_name(string_value),
+        "doc_string" => self.set_doc_string(string_value),
         "special_fields" => {},
         _ => panic!("GRAPHPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -2442,21 +2462,21 @@ impl GraphProto {
           if new_structure_to_add && structure_path.len() == 1 {
             self.node.push(NodeProto::default());
           } else {
-            self.node.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.node.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "tensorproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             self.initializer.push(TensorProto::default());
           } else {
-            self.initializer.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.initializer.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "sparsetensorproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             self.sparse_initializer.push(SparseTensorProto::default());
           } else {
-            self.sparse_initializer.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.sparse_initializer.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "valueinfoproto" => {
@@ -2468,11 +2488,11 @@ impl GraphProto {
               _ => panic!("GRAPHPROTO -> valueinfoproto: attribute name Add cannot be done; it does not match any ValueInfoProto structure: {}", attribute_name)
             }
           } else {
-            match attribute_name{
-              "input" => self.input.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "output" => self.output.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              "value_info" => self.value_info.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-              _ => panic!("GRAPHPROTO -> valueinfoproto: attribute name Dispatch cannot be done; it does not match any ValueInfoProto structure: {}", attribute_name)
+            match current_structure_search(current_structure, structure_path.len()).as_str() {
+              "input" => self.input.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "output" => self.output.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              "value_info" => self.value_info.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+              _ => panic!("GRAPHPROTO -> valueinfoproto: attribute name Dispatch cannot be done; it does not match any ValueInfoProto structure: {}", current_structure_search(current_structure, structure_path.len()).as_str())
             }
           }
         }
@@ -2816,36 +2836,36 @@ impl TensorProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of tensor_proto
       match attribute_name {
-        "dims" => self.dims.push(attribute_value.into()),
-        "data_types" => self.set_data_type(attribute_value.into()),
-        "float_data" => self.float_data.push(attribute_value.into()),
-        "int32_data" => self.int32_data.push(attribute_value.into()),
-        "string_data" => self.string_data.push(Vec::from(attribute_value.to_string())),
-        "int64_data" => self.int64_data.push(attribute_value.into()),
-        "name" => self.set_name(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
-        "raw_data" => self.set_raw_data(Vec::from(attribute_value.to_string())),
-        "double_data" => self.double_data.push(attribute_value.into()),
-        "uint64_data" => self.uint64_data.push(attribute_value.into()),
+        "dims" => self.dims.push(integer_value.into()),
+        "data_types" => self.set_data_type(integer_value),
+        "float_data" => self.float_data.push(float_value),
+        "int32_data" => self.int32_data.push(integer_value),
+        "string_data" => self.string_data.push(Vec::from(string_value)),
+        "int64_data" => self.int64_data.push(integer_value.into()),
+        "name" => self.set_name(string_value),
+        "doc_string" => self.set_doc_string(string_value),
+        "raw_data" => self.set_raw_data(Vec::from(string_value)),
+        "double_data" => self.double_data.push(float_value.into()),
+        "uint64_data" => self.uint64_data.push(integer_value as u64),
         "special_fields" => {},
-        _ => panic!("MODELPROTO dispatcher simple types, method not found: {}", attribute_name)
+        _ => panic!("TENSORPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
     }else{ //complex types, here starts the dispatch recursion.
       let next_child_to_dispatch = structure_path.get(0).unwrap();
       match next_child_to_dispatch.as_str(){
-        "segment" => self.segment.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+        "segment" => self.segment.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
         "stringstringentryproto" => {
           if new_structure_to_add && structure_path.len() == 1{
             self.external_data.push(StringStringEntryProto::default());
           }else{
-            self.external_data.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.external_data.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "datalocation" => { },
-        _ => panic!("MODELPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        _ => panic!("TENSORPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
       }
     }
   }
@@ -3238,11 +3258,11 @@ pub mod tensor_proto {
       Default::default()
     }
 
-    pub(crate) fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, /*unused*/ _string_value: String , /*unused*/ _new_structure_to_add: bool) {
       if structure_path.is_empty() { //simple types, direct children of segment
         match attribute_name {
-          "begin" => self.set_begin(attribute_value.into()),
-          "end" => self.set_end(attribute_value.into()),
+          "begin" => self.set_begin(integer_value.into()),
+          "end" => self.set_end(integer_value.into()),
           "special_fields" => {},
           _ => panic!("SEGMENT dispatcher simple types, method not found: {}", attribute_name)
         }
@@ -3563,10 +3583,10 @@ impl SparseTensorProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of sparse_tensor_proto
       match attribute_name {
-        "dims" => self.dims.push(attribute_value.into()),
+        "dims" => self.dims.push(integer_value.into()),
         "special_fields" => {},
         _ => panic!("SPARSETENSORPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -3575,8 +3595,8 @@ impl SparseTensorProto {
       match next_child_to_dispatch.as_str() {
         "tensorproto" => {
           match attribute_name{
-            "values" => self.values.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
-            "indices" => self.indices.as_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add),
+            "values" => self.values.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+            "indices" => self.indices.as_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
             _ => panic!("SPARSETENSORPROTO -> tensorproto: attribute name Dispatch cannot be done; it does not match any TensorProto structure: {}", attribute_name)
           }
         }
@@ -3704,6 +3724,27 @@ impl TensorShapeProto {
   pub fn new() -> TensorShapeProto {
     Default::default()
   }
+
+  pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+    if structure_path.is_empty() { //simple types, direct children of tensor_shape_proto
+      match attribute_name {
+        "special_fields" => {},
+        _ => panic!("TENSORSHAPEPROTO dispatcher simple types, method not found: {}", attribute_name)
+      }
+    } else { //complex types, here starts the dispatch recursion.
+      let next_child_to_dispatch = structure_path.get(0).unwrap();
+      match next_child_to_dispatch.as_str() {
+        "dimension" => {
+          if new_structure_to_add && structure_path.len() == 1{
+            self.dim.push(tensor_shape_proto::Dimension::default());
+          }else{
+            self.dim.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
+          }
+        },
+        _ => panic!("TENSORSHAPEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      }
+    }
+  }
 }
 
 impl protobuf::Message for TensorShapeProto {
@@ -3805,8 +3846,25 @@ pub mod tensor_shape_proto {
       Default::default()
     }
 
-    // optional int64 dim_value = 1;
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of dimension
+        match attribute_name {
+          "denotation" => self.set_denotation(string_value),
+          "dim_value" => self.value = Option::from(dimension::Value::DimValue(integer_value.into())),
+          "dim_param" => self.value = Option::from(dimension::Value::DimParam(string_value)),
+          "special_fields" => {},
+          _ => panic!("TENSORSHAPEPROTO::DIMENSION dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "value" => {},
+          _ => panic!("TENSORSHAPEPROTO::DIMENSION dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
 
+    // optional int64 dim_value = 1;
     pub fn dim_value(&self) -> i64 {
       match self.value {
         Some(dimension::Value::DimValue(v)) => v,
@@ -4064,18 +4122,25 @@ impl TypeProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of type_proto
       match attribute_name {
-        "denotation" => self.set_denotation(attribute_value.to_string()),
+        "denotation" => self.set_denotation(string_value),
         "special_fields" => {},
         _ => panic!("TYPEPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
     }else { //complex types, here starts the dispatch recursion.
-      let next_child_to_dispatch = structure_path.get(0).unwrap();
-      match next_child_to_dispatch.as_str() {
-        "value" => {},
-        _ => panic!("TYPEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+      if (new_structure_to_add && structure_path.len() != 1) || !new_structure_to_add {
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "value" => { },
+          "tensor" => self.mut_tensor_type().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+          "sequence" => self.mut_sequence_type().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+          "map" => self.mut_map_type().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+          "optional" => self.mut_optional_type().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+          "sparsetensor" => self.mut_sparse_tensor_type().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+          _ => panic!("TYPEPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
       }
     }
   }
@@ -4129,7 +4194,6 @@ impl TypeProto {
   }
 
   // optional .onnx.TypeProto.Sequence sequence_type = 4;
-
   pub fn sequence_type(&self) -> &type_proto::Sequence {
     match self.value {
       Some(type_proto::Value::SequenceType(ref v)) => v,
@@ -4178,7 +4242,6 @@ impl TypeProto {
   }
 
   // optional .onnx.TypeProto.Map map_type = 5;
-
   pub fn map_type(&self) -> &type_proto::Map {
     match self.value {
       Some(type_proto::Value::MapType(ref v)) => v,
@@ -4227,7 +4290,6 @@ impl TypeProto {
   }
 
   // optional .onnx.TypeProto.Optional optional_type = 9;
-
   pub fn optional_type(&self) -> &type_proto::Optional {
     match self.value {
       Some(type_proto::Value::OptionalType(ref v)) => v,
@@ -4276,7 +4338,6 @@ impl TypeProto {
   }
 
   // optional .onnx.TypeProto.SparseTensor sparse_tensor_type = 8;
-
   pub fn sparse_tensor_type(&self) -> &type_proto::SparseTensor {
     match self.value {
       Some(type_proto::Value::SparseTensorType(ref v)) => v,
@@ -4325,7 +4386,6 @@ impl TypeProto {
   }
 
   // optional string denotation = 6;
-
   pub fn denotation(&self) -> &str {
     match self.denotation.as_ref() {
       Some(v) => v,
@@ -4515,6 +4575,7 @@ pub mod type_proto {
   }
 
   impl Value {
+
   }
   #[derive(PartialEq,Clone,Default,Debug)]
   // @@protoc_insertion_point(message:onnx.TypeProto.Tensor)
@@ -4543,8 +4604,28 @@ pub mod type_proto {
       Default::default()
     }
 
-    // optional int32 elem_type = 1;
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of tensor
+        match attribute_name {
+          "elem_type" => self.set_elem_type(integer_value),
+          "special_fields" => {},
+          _ => panic!("TYPE::TENSOR dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "tensorshapeproto" => {
+            match self.shape.as_mut() {
+              None => self.shape = protobuf::MessageField::some(super::TensorShapeProto::new()),
+              Some(s) => s.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+            }
+          },
+          _ => panic!("TYPE::TENSOR dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
 
+    // optional int32 elem_type = 1;
     pub fn elem_type(&self) -> i32 {
       self.elem_type.unwrap_or(0)
     }
@@ -4666,6 +4747,25 @@ pub mod type_proto {
     pub fn new() -> Sequence {
       Default::default()
     }
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of sequence
+        match attribute_name {
+          "special_fields" => {},
+          _ => panic!("TYPE::SEQUENCE dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "typeproto" => {
+            match self.elem_type.as_mut() {
+              None => self.elem_type = protobuf::MessageField::some(super::TypeProto::new()),
+              Some(e) => e.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+            }
+          },
+          _ => panic!("TYPE::SEQUENCE dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
   }
 
   impl protobuf::Message for Sequence {
@@ -4765,8 +4865,28 @@ pub mod type_proto {
       Default::default()
     }
 
-    // optional int32 key_type = 1;
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of map
+        match attribute_name {
+          "key_type" => self.set_key_type(integer_value),
+          "special_fields" => {},
+          _ => panic!("TYPE::MAP dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "typeproto" => {
+            match self.value_type.as_mut() {
+              None => self.value_type = protobuf::MessageField::some(super::TypeProto::new()),
+              Some(v) => v.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+            }
+          },
+          _ => panic!("TYPE::MAP dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
 
+    // optional int32 key_type = 1;
     pub fn key_type(&self) -> i32 {
       self.key_type.unwrap_or(0)
     }
@@ -4889,6 +5009,26 @@ pub mod type_proto {
     pub fn new() -> Optional {
       Default::default()
     }
+
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of optional
+        match attribute_name {
+          "special_fields" => {},
+          _ => panic!("TYPE::OPTIONAL dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "typeproto" => {
+            match self.elem_type.as_mut() {
+              None => self.elem_type = protobuf::MessageField::some(super::TypeProto::new()),
+              Some(e) => e.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+            }
+          },
+          _ => panic!("TYPE::OPTIONAL dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
   }
 
   impl protobuf::Message for Optional {
@@ -4986,8 +5126,28 @@ pub mod type_proto {
       Default::default()
     }
 
-    // optional int32 elem_type = 1;
+    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+      if structure_path.is_empty() { //simple types, direct children of sparse_tensor
+        match attribute_name {
+          "elem_type" => self.set_elem_type(integer_value),
+          "special_fields" => {},
+          _ => panic!("TYPE::SPARSETENSOR dispatcher simple types, method not found: {}", attribute_name)
+        }
+      } else { //complex types, here starts the dispatch recursion.
+        let next_child_to_dispatch = structure_path.get(0).unwrap();
+        match next_child_to_dispatch.as_str() {
+          "tensorshapeproto" => {
+            match self.shape.as_mut() {
+              None => self.shape = protobuf::MessageField::some(super::TensorShapeProto::new()),
+              Some(s) => s.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add)
+            }
+          },
+          _ => panic!("TYPE::SPARSETENSOR dispatcher complex types, child not found: {}", next_child_to_dispatch)
+        }
+      }
+    }
 
+    // optional int32 elem_type = 1;
     pub fn elem_type(&self) -> i32 {
       self.elem_type.unwrap_or(0)
     }
@@ -5119,11 +5279,11 @@ impl OperatorSetIdProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, /*unused*/ _new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of operator_set_id_proto
       match attribute_name {
-        "domain" => self.set_domain(attribute_value.to_string()),
-        "version" => self.set_version(attribute_value.into()),
+        "domain" => self.set_domain(string_value),
+        "version" => self.set_version(integer_value.into()),
         "special_fields" => {},
         _ => panic!("OPERATORSETIDPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -5317,15 +5477,15 @@ impl FunctionProto {
     Default::default()
   }
 
-  fn dispatch<T: Into<i64> + Into<i32> + Into<f32> + Into<f64> + Into<u64> + ToString>(&mut self, structure_path: &[String], attribute_name: &str, attribute_value: T, new_structure_to_add: bool) {
+  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String , new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of function_proto
       match attribute_name {
-        "name" => self.set_name(attribute_value.to_string()),
-        "input" => self.input.push(attribute_value.to_string()),
-        "output" => self.output.push(attribute_value.to_string()),
-        "attribute" => self.attribute.push(attribute_value.to_string()),
-        "doc_string" => self.set_doc_string(attribute_value.to_string()),
-        "domain" => self.set_domain((attribute_value.to_string())),
+        "name" => self.set_name(string_value),
+        "input" => self.input.push(string_value),
+        "output" => self.output.push(string_value),
+        "attribute" => self.attribute.push(string_value),
+        "doc_string" => self.set_doc_string(string_value),
+        "domain" => self.set_domain(string_value),
         "special_fields" => {},
         _ => panic!("FUNCTIONPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
@@ -5336,21 +5496,21 @@ impl FunctionProto {
           if new_structure_to_add && structure_path.len() == 1 {
             self.attribute_proto.push(AttributeProto::default());
           } else {
-            self.attribute_proto.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.attribute_proto.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "nodeproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             self.node.push(NodeProto::default());
           } else {
-            self.node.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.node.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         "operatorsetidproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             self.opset_import.push(OperatorSetIdProto::default());
           } else {
-            self.opset_import.last_mut().unwrap().dispatch(&structure_path[1..], attribute_name, attribute_value, new_structure_to_add);
+            self.opset_import.last_mut().unwrap().dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add);
           }
         },
         _ => panic!("FUNCTIONPROTO dispatcher complex types, child not found: {}", next_child_to_dispatch)

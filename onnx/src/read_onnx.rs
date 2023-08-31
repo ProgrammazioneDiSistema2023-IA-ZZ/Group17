@@ -9,7 +9,7 @@ This function allows the program to read a .onnx file byte per byte and, thanks 
     ~ proto_structure, which is a hashmap (allows cheapest searches over itself) mapping the onnx.proto structure, essential to parse the .onnx file
   - It returns: TODO!
 */
-pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Proto>) {
+pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Proto>) -> ModelProto {
   let onnx_bytes = std::fs::read(onnx_file_path).expect("Failed to read file");
   let mut counter = 0; //counter of read bytes
 
@@ -22,11 +22,13 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
   let mut value: i32;
   let mut length_object_or_enum_field_numer: i32;
 
-  //these two lifo stacks contain respectively the structure read from the onnx and its length. E.g. ModelProto -> length 1024 bytes, GraphProto -> length 1000 bytes
+  //these lifo stacks contain respectively the structure read from the onnx and its length. E.g. ModelProto -> length 1024 bytes, GraphProto -> length 1000 bytes
   let mut lifo_stack_length: Vec<i32> = Vec::new();
   lifo_stack_length.push(onnx_bytes.len() as i32);
   let mut lifo_stack_struct: Vec<String> = Vec::new();
   lifo_stack_struct.push("modelproto".to_string());
+  let mut lifo_stack_named_struct: Vec<String> = Vec::new();
+  lifo_stack_named_struct.push("model".to_string());
 
   let mut model_proto: ModelProto = ModelProto::new();
 
@@ -64,7 +66,7 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
         length_binary_or_enum_filed_number = concat_bytes(length_binary_or_enum_filed_number, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes);
       }
       //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx
-      decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2 + number_of_concatenated_bytes);
+      decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, 2 + number_of_concatenated_bytes);
 
       /*
       the possibilities at this point are two: 1. the complex type is a Message/OneOf. 2. the complex type is a Enum.
@@ -78,8 +80,9 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
       if is_enum_with_type.is_empty() { //new structure read from the onnx. Specifically a Message not a Enum
         lifo_stack_struct.push(field_type.clone());
         lifo_stack_length.push(length_object_or_enum_field_numer);
+        lifo_stack_named_struct.push(field_name.clone());
 
-        model_proto.dispatch(&lifo_stack_struct[1..], field_name.as_str(), length_object_or_enum_field_numer, true);
+        model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), length_object_or_enum_field_numer, 0.00, String::default(),true);
 
         println!("Adding Sub-Message: ({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object_or_enum_field_numer, wire_type);
       } else { //enum case. As explained above it doesn't need to be added to the runtime structures
@@ -111,12 +114,11 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
         }
       }
 
-      model_proto.dispatch(&lifo_stack_struct[1..], field_name.as_str(), string_result, false);
-      //model_proto.dispatch(field_name.as_str(), None, Some(string_result.clone()), None);
+      model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, 0.00, string_result.clone(), false);
 
       println!("String/Raw Data Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
       //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + y Bytes (value) for the string/raw data just read
-      decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, value + 2 + number_of_concatenated_bytes);
+      decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, value + 2 + number_of_concatenated_bytes);
       counter += value as usize;
     } else {
       if field_type == "float" { //parsing float type numbers
@@ -133,12 +135,12 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
         //transmuting the array into a float
         let float_value: f32 = unsafe { std::mem::transmute(bytes) };
 
-        model_proto.dispatch(&lifo_stack_struct[1..], field_name.as_str(), float_value, false);
+        model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, float_value, String::default(), false);
 
         println!("Float Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, float_value, field_type);
 
         //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + 4 Bytes (value) for the float representation
-        decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 5 + number_of_concatenated_bytes);
+        decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, 5 + number_of_concatenated_bytes);
       } else { //all the other cases
         counter += 1;
         binary_string = format!("{:b}", onnx_bytes[counter]);
@@ -147,15 +149,19 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
         }
         value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
 
-        model_proto.dispatch(&lifo_stack_struct[1..], field_name.as_str(), value, false);
+        if field_name == "elem_type"{
+          print!("adad");
+        }
+        model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), value, 0.00, String::default(), false);
 
         println!("Other cases: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
 
-        decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, 2 + number_of_concatenated_bytes);
+        decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, 2 + number_of_concatenated_bytes);
       }
     }
     counter += 1;
   }
+  model_proto
 }
 
 /*
@@ -212,10 +218,11 @@ fn concat_bytes(start_string: String, counter: &mut usize, onnx_bytes: &Vec<u8>,
 This function allows to decrement the amount of bytes which remain to be read for the current structure.
   -It takes 3 parameters:
     ~ vec_length: the vector which contains the length of the structures
-    ~ vec_struct: the vector which contains the structures and their hierarchy read from the onnx
+    ~ vec_struct: the vector which contains the structures and their hierarchy read from the onnx (i.e. modelproto->graphproto->nodeproto)
+    ~ vec__named_struct: the vector which contains the structures and their hierarchy read from the onnx (i.e. model->graph->input)
     ~ value_to_decrement: how much the length needs to be decreased
 */
-fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, value_to_decrement: i32) {
+fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, vec_named_struct: &mut Vec<String>, value_to_decrement: i32) {
   if vec_length.len() > 0 {
     for num in vec_length.iter_mut() { //decrease the correct structure length
       *num -= value_to_decrement;
@@ -232,6 +239,7 @@ fn decrement_length(vec_length: &mut Vec<i32>, vec_struct: &mut Vec<String>, val
     if zero_count > 0 { //truncating the 0 length structures
       vec_length.truncate(vec_length.len() - zero_count);
       vec_struct.truncate(vec_struct.len() - zero_count);
+      vec_named_struct.truncate(vec_named_struct.len() - zero_count);
     }
   }
 }

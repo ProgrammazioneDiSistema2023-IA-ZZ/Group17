@@ -33,7 +33,8 @@ fn main() {
   match create_struct_from_proto_file(proto_path) {
     Ok(result) => {
       println!("{:?}", result);
-      read_onnx_file(onnx_path, &result);
+      let model = read_onnx_file(onnx_path, &result);
+      println!("\n\n{:?}", model);
     },
     Err(err) => {
       eprintln!("{}", err);
