@@ -22,40 +22,12 @@ TODO:
 pub mod onnx_structure;
 
 mod read_proto;
-use read_proto::create_struct_from_proto_file;
 
 mod read_onnx;
-use read_onnx::read_onnx_file;
+use crate::read_onnx::generate_onnx_model;
 
 fn main() {
   let proto_path = "../onnx.proto";
   let onnx_path = "models/model.onnx";
-  match create_struct_from_proto_file(proto_path) {
-    Ok(result) => {
-      println!("{:?}", result);
-      let model = read_onnx_file(onnx_path, &result);
-      println!("\n\n{:?}", model);
-    },
-    Err(err) => {
-      eprintln!("{}", err);
-    }
-  }
+  let model = generate_onnx_model(onnx_path, proto_path);
 }
-
-/* NEW VERSION */
-/*fn main() -> onnxruntime::Result<()> {
-    let environment = Environment::builder()
-        .with_name("test")
-        .with_log_level(LoggingLevel::Verbose)
-        .build()?;
-
-    let session = environment
-        .new_session_builder()?
-        .with_optimization_level(GraphOptimizationLevel::Basic)?
-        .with_number_threads(1)?
-        .with_model_from_file("models/model.onnx")?;
-
-    println!("{:?}", session);
-
-    Ok(())
-}*/

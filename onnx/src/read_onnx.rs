@@ -1,15 +1,21 @@
 use std::collections::HashMap;
 use crate::onnx_structure::ModelProto;
+use crate::read_proto::create_struct_from_proto_file;
 use crate::read_proto::proto_structure::{KindOf, Proto};
 
 /*
 This function allows the program to read a .onnx file byte per byte and, thanks to the proto_structure previously read, to generate a onnx runtime model.
   - It takes two parameters:
     ~ onnx_file_path, specifies the onnx file path
-    ~ proto_structure, which is a hashmap (allows cheapest searches over itself) mapping the onnx.proto structure, essential to parse the .onnx file
-  - It returns: TODO!
+    ~ proto_file_path, specifies the proto file path
+  - It returns: ModelProto, a runtime model proto
 */
-pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Proto>) -> ModelProto {
+pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> ModelProto {
+  let proto_structure = match create_struct_from_proto_file(proto_file_path) {
+    Ok(proto) => proto,
+    Err(err) => panic!("{}", err)
+  };
+
   let onnx_bytes = std::fs::read(onnx_file_path).expect("Failed to read file");
   let mut counter = 0; //counter of read bytes
 
@@ -50,7 +56,7 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
     field_number = u64::from_str_radix(first_part, 2).unwrap() as i32; //dropping msb 0s
 
     //retrieving the field type and name merging the field number (extracted from the .onnx) with the current structure and the info provided from the proto_structure
-    match get_field(&lifo_stack_struct.last().unwrap(), field_number, proto_structure) {
+    match get_field(&lifo_stack_struct.last().unwrap(), field_number, &proto_structure) {
       Some((f_n, f_t)) => {
         field_name = f_n;
         field_type = f_t;
@@ -76,7 +82,7 @@ pub fn read_onnx_file(onnx_file_path: &str, proto_structure: &HashMap<String, Pr
       */
       length_object_or_enum_field_numer = u64::from_str_radix(&*length_binary_or_enum_filed_number, 2).unwrap() as i32; //dropping msb 0s
       //so if the current field_type which represents the enum name exists into the proto_structure, its type is retrieved. Otherwise we now know that the field_type is not a enum (an empty string is returned)
-      let is_enum_with_type = search_enum_in_proto_structure(proto_structure, &field_type, length_object_or_enum_field_numer);
+      let is_enum_with_type = search_enum_in_proto_structure(&proto_structure, &field_type, length_object_or_enum_field_numer);
       if is_enum_with_type.is_empty() { //new structure read from the onnx. Specifically a Message not a Enum
         lifo_stack_struct.push(field_type.clone());
         lifo_stack_length.push(length_object_or_enum_field_numer);

@@ -20,7 +20,6 @@ pub fn create_struct_from_proto_file(proto_file_path: &str) -> Result<HashMap<St
   //See proto_structure.rs -> Struct Proto explanation
   let mut proto_map: HashMap<String, Proto> = HashMap::new(); //this data structure maintains all the message/oneof structures contained in the .proto file (i.e. Proto).
   let mut current_proto_name = String::new(); //contains the path to the considered proto (always remember that a proto is a Message/OneOf)
-  //TODO: capire se si vuol dare compatibilità anche con la versione 3 di proto. Questa è più complicata da leggere perché gli attributi non iniziano con un annotazione...
   let mut _proto_version = 2; //since version 2 and 3 are valid, this application needs to work properly with both versions
   let mut proto_level = 0; //level of nesting
   let mut parent_type = KindOf::default(); //this variable maintains whether the reader is inside of a message or a oneof
@@ -205,7 +204,6 @@ fn adding_proto_attribute(proto_version: i32, mut words: SplitWhitespace, curren
   let mut annotation = ProtoAnnotation::default();
   if proto_version == 2{ //proto2 must specify an annotation
     annotation = words.next().expect("Cannot get Annotation in .proto2").parse().unwrap();
-    //TODO! proto3 in realtà puo anche specificarlo, quindi dovrei leggere la prima word e capire se è o meno un annotation
   }
   if let Some(attribute_type) = words.next() {
     if let Some(attribute_name_with_equals) = words.next() {
