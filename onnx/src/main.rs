@@ -28,6 +28,8 @@ use crate::read_onnx::generate_onnx_model;
 
 fn main() {
   let proto_path = "../onnx.proto";
-  let onnx_path = "models/model.onnx";
-  let model = generate_onnx_model(onnx_path, proto_path);
+  let onnx_path = "models/squeezenet1.0-8.onnx";
+  let _model = generate_onnx_model(onnx_path, proto_path);
+
+  println!("done");
 }

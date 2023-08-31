@@ -90,9 +90,9 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
 
         model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), length_object_or_enum_field_numer, 0.00, String::default(),true);
 
-        println!("Adding Sub-Message: ({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object_or_enum_field_numer, wire_type);
+        //println!("Adding Sub-Message: ({}) In {}/{} -> {}, {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, length_object_or_enum_field_numer, wire_type);
       } else { //enum case. As explained above it doesn't need to be added to the runtime structures
-        println!("Enum Case: ({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
+        //println!("Enum Case: ({}) In {}/{} -> {} = {} ({})", field_number, lifo_stack_struct.get(lifo_stack_struct.len() - 2).unwrap(), lifo_stack_struct.last().unwrap(), field_name, is_enum_with_type, wire_type);
       }
     } else if wire_type == "LEN" { //simple type cases
       //getting the length of a string or some raw_data
@@ -122,7 +122,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
 
       model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, 0.00, string_result.clone(), false);
 
-      println!("String/Raw Data Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
+      //println!("String/Raw Data Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
       //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + y Bytes (value) for the string/raw data just read
       decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, value + 2 + number_of_concatenated_bytes);
       counter += value as usize;
@@ -143,7 +143,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
 
         model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, float_value, String::default(), false);
 
-        println!("Float Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, float_value, field_type);
+        //println!("Float Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, float_value, field_type);
 
         //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + 4 Bytes (value) for the float representation
         decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, 5 + number_of_concatenated_bytes);
@@ -155,12 +155,9 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
         }
         value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
 
-        if field_name == "elem_type"{
-          print!("adad");
-        }
         model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), value, 0.00, String::default(), false);
 
-        println!("Other cases: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
+        //println!("Other cases: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, value, wire_type);
 
         decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, 2 + number_of_concatenated_bytes);
       }

@@ -2081,7 +2081,7 @@ impl StringStringEntryProto {
     Default::default()
   }
 
-  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, /*unused*/ _integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
+  fn dispatch(&mut self, /*unused*/ _current_structure: &[String], structure_path: &[String], attribute_name: &str, /*unused*/ _integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of string_string_entry_proto
       match attribute_name {
         "key" => self.set_key(string_value),
@@ -2840,7 +2840,7 @@ impl TensorProto {
     if structure_path.is_empty() { //simple types, direct children of tensor_proto
       match attribute_name {
         "dims" => self.dims.push(integer_value.into()),
-        "data_types" => self.set_data_type(integer_value),
+        "data_type" => self.set_data_type(integer_value),
         "float_data" => self.float_data.push(float_value),
         "int32_data" => self.int32_data.push(integer_value),
         "string_data" => self.string_data.push(Vec::from(string_value)),
@@ -3258,7 +3258,7 @@ pub mod tensor_proto {
       Default::default()
     }
 
-    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, /*unused*/ _string_value: String , /*unused*/ _new_structure_to_add: bool) {
+    pub(crate) fn dispatch(&mut self, /*unused*/ _current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, /*unused*/ _string_value: String , /*unused*/ _new_structure_to_add: bool) {
       if structure_path.is_empty() { //simple types, direct children of segment
         match attribute_name {
           "begin" => self.set_begin(integer_value.into()),
@@ -3846,7 +3846,7 @@ pub mod tensor_shape_proto {
       Default::default()
     }
 
-    pub(crate) fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, float_value: f32, string_value: String, new_structure_to_add: bool) {
+    pub(crate) fn dispatch(&mut self, /*unused*/ _current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, string_value: String, /*unused*/ _new_structure_to_add: bool) {
       if structure_path.is_empty() { //simple types, direct children of dimension
         match attribute_name {
           "denotation" => self.set_denotation(string_value),
@@ -5279,7 +5279,7 @@ impl OperatorSetIdProto {
     Default::default()
   }
 
-  fn dispatch(&mut self, current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
+  fn dispatch(&mut self, /*unused*/ _current_structure: &[String], structure_path: &[String], attribute_name: &str, integer_value: i32, /*unused*/ _float_value: f32, string_value: String , /*unused*/ _new_structure_to_add: bool) {
     if structure_path.is_empty() { //simple types, direct children of operator_set_id_proto
       match attribute_name {
         "domain" => self.set_domain(string_value),

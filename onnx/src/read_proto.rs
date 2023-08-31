@@ -88,7 +88,7 @@ pub fn create_struct_from_proto_file(proto_file_path: &str) -> Result<HashMap<St
         }
 
         let proto_name_path: Vec<&str> = current_proto_name.split('/').collect();
-        println!("{:?}", proto_name_path);
+        //println!("{:?}", proto_name_path);
         //add a new proto in the correct position(path) of hashmap
         match adding_new_proto(&proto_name_path, proto_name, &current_proto_name, &mut proto_map, &parent_type) {
           Ok(()) => continue,
