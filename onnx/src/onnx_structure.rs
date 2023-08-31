@@ -20,7 +20,8 @@
 #![allow(unused_mut)]
 
 //! Generated file from `proto/onnx.proto`
-use protobuf::MessageField;
+use protobuf::{Enum, EnumOrUnknown, MessageField};
+use protobuf::well_known_types::type_;
 use crate::onnx_structure::attribute_proto::AttributeType;
 
 pub fn current_structure_search(current_structure: &[String], len: usize) -> String{
@@ -133,7 +134,12 @@ impl AttributeProto {
     }else { //complex types, here starts the dispatch recursion.
       let next_child_to_dispatch = structure_path.get(0).unwrap();
       match next_child_to_dispatch.as_str() {
-        "attributetype" => { },//self.type_.dispatch(current_structure, &structure_path[1..], attribute_name, integer_value, float_value, string_value, new_structure_to_add),
+        "attributetype" => {
+          match AttributeType::from_i32(integer_value){
+            Some(attribute) => self.type_ = Some(EnumOrUnknown::new(attribute)),
+            None => panic!("ATTRIBUTEPROTO::ATTRIBUTETYPE cannot get correct attribute type from integer: {}", integer_value)
+          }
+        },
         "tensorproto" => {
           if new_structure_to_add && structure_path.len() == 1 {
             match attribute_name{
@@ -2847,9 +2853,28 @@ impl TensorProto {
         "int64_data" => self.int64_data.push(integer_value.into()),
         "name" => self.set_name(string_value),
         "doc_string" => self.set_doc_string(string_value),
-        "raw_data" => self.set_raw_data(Vec::from(string_value)),
+        "raw_data" => {
+          let aus: Vec<f32> = string_value
+            .split(',')
+            .map(|s| s.trim().parse::<f32>())
+            .filter_map(Result::ok)
+            .collect();
+          let aus_u8: Vec<u8> = aus.iter()
+            .flat_map(|&f| unsafe { std::mem::transmute::<f32, [u8; 4]>(f).to_vec() })
+            .collect();
+          self.set_raw_data(aus_u8);
+
+          //printing raw_data as f32
+          /*let mut i=0;
+          while i < self.raw_data.clone().unwrap().len()-3{
+            println!("{}", f32::from_le_bytes([self.raw_data.clone().unwrap()[i], self.raw_data.clone().unwrap()[i+1], self.raw_data.clone().unwrap()[i+2], self.raw_data.clone().unwrap()[i+3]]));
+            i+=4;
+          }*/
+        },
         "double_data" => self.double_data.push(float_value.into()),
         "uint64_data" => self.uint64_data.push(integer_value as u64),
+        "default" => self.data_location = Option::from(EnumOrUnknown::new(tensor_proto::DataLocation::DEFAULT)),
+        "external" => self.data_location = Option::from(EnumOrUnknown::new(tensor_proto::DataLocation::EXTERNAL)),
         "special_fields" => {},
         _ => panic!("TENSORPROTO dispatcher simple types, method not found: {}", attribute_name)
       }
