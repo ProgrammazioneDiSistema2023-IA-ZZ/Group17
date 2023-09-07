@@ -21,7 +21,6 @@
 
 //! Generated file from `proto/onnx.proto`
 use protobuf::{Enum, EnumOrUnknown, MessageField};
-use protobuf::well_known_types::type_;
 use crate::onnx_structure::attribute_proto::AttributeType;
 
 pub fn current_structure_search(current_structure: &[String], len: usize) -> String{
@@ -709,6 +708,11 @@ pub mod attribute_proto {
     // @@protoc_insertion_point(enum_value:onnx.AttributeProto.AttributeType.TYPE_PROTOS)
     TYPE_PROTOS = 14,
   }
+
+  /*A0 03*
+    -> FN, WT
+    -> 3
+   */
 
   impl protobuf::Enum for AttributeType {
     const NAME: &'static str = "AttributeType";

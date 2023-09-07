@@ -71,7 +71,6 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
       if length_binary_or_enum_filed_number.len() >= 8 {
         length_binary_or_enum_filed_number = concat_bytes(length_binary_or_enum_filed_number, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes);
       }
-      let enum_parent = (lifo_stack_struct.last().unwrap().clone(), lifo_stack_named_struct.last().unwrap().clone());
 
       /*
       the possibilities at this point are two: 1. the complex type is a Message/OneOf. 2. the complex type is a Enum.

@@ -7,6 +7,9 @@ https://onnx.ai/onnx/intro/concepts.html
 ONNX structure description:
 https://github.com/onnx/onnx/blob/main/docs/IR.md
 
+ONNX ops:
+https://github.com/onnx/onnx/blob/970563917f6c22e7b2c5400c23cb794e8f52e428/onnx/reference/ops/op_conv.py#L11
+
 ------------------------------------------------
 
 ONNX reader: 
