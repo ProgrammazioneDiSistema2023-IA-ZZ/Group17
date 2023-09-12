@@ -1,6 +1,8 @@
 use ndarray::*;
 use num_traits::Float;
-pub type DataRepresentation<F> = Array4<F>;
+
+
+//todo: check sulle dimensioni delle matrici comprese di strides, dilations, e paddings
 
 // Padding (specific way of adding zeros to the input matrix) kind used in the convolution.
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -18,68 +20,43 @@ pub enum Padding {
 // Rust implementation of a convolutional layer.
 // The weight matrix (aka kernel) shall have dimension (in that order)
 // channels/groups(input channels), feature maps(output channels), kernel width, kernel height,
+// specified by kernel_size
 pub struct ConvolutionLayer<F: Float> {
-  pub(in crate) kernel: Array4<F>,
-  pub(in crate) bias: Option<Array1<F>>,
   pub(in crate) auto_pad: Padding,
-  pub(in crate) dilations: Option<Array2<i32>>,
-  pub(in crate) group: Option<i32>,
   pub(in crate) pads: Array1<F>,
+  pub(in crate) kernel_size: Array2<i32>,
+  pub(in crate) storage_order: Option<i32>,
   pub(in crate) strides: Array1<F>
 }
 
 impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: From<F>{
   // Creates new convolution layer.
-  fn new(
-    kernel: Array4<F>,
-    bias: Option<Array1<F>>,
+  pub fn new(
     auto_pad: Padding,
-    dilations: Option<Array2<i32>>,
-    group: Option<i32>,
     pads: Array1<F>,
+    kernel_size: Array2<i32>,
+    storage_order: Option<i32>,
     strides: Array1<F>,
   ) -> ConvolutionLayer<F> {
-    ConvolutionLayer { kernel, bias, auto_pad, dilations, group, pads, strides }
+    ConvolutionLayer { auto_pad, pads, kernel_size, storage_order, strides }
   }
 
-  /// Creates new convolution layer. The weights are given in ONNX Tensorflow layout:
-  /// feature maps(output channels), channels/groups(input channels), kernel height, kernel width
-  /// converted into:
-  /// channels/groups(input channels), feature maps(output channels), kernel width, kernel height,
-  pub fn new_onnx_tensor_flow(
-    kernel: Array4<F>,
-    bias: Option<Array1<F>>,
-    auto_pad: Padding,
-    dilations: Option<Array2<i32>>,
-    group: Option<i32>,
-    pads: Array1<F>,
-    strides: Array1<F>,
-  ) -> ConvolutionLayer<F> {
-    let permuted_view = kernel.view().permuted_axes([1, 0, 3, 2]);
-    // Hack to fix the memory layout, permuted axes makes a
-    // col major array / non-contiguous array from kernel
-    let permuted_array: Array4<F> = Array::from_shape_vec(permuted_view.dim(), permuted_view.iter().copied().collect()).unwrap();
-    ConvolutionLayer::new(permuted_array, bias, auto_pad, dilations, group, pads, strides)
-  }
-
-  /// Analog to conv2d.
-  pub fn convolve(&self, image: &DataRepresentation<F>) -> DataRepresentation<F> {
-    conv2d(
-      &self.kernel,
+  /// Analog to max_pool2d
+  pub fn max_pool(&self, image: &Array4<F>) -> Array4<F> {
+    max_pool2d(
       image,
-      self.bias.as_ref(),
       self.auto_pad,
-      self.dilations.as_ref(),
-      self.group,
       &self.pads,
+      &self.kernel_size,
+      self.storage_order.as_ref(),
       &self.strides,
     )
   }
 }
 
 /// OPSET VERSION: 8
-/// Performs a convolution on the given image data using this layers parameters.
-/// We always convolve on flattened images and expect the input array in im2col
+/// Performs a max pooling on the given image data using this layers parameters.
+/// We always max pool on flattened images and expect the input array in im2col
 /// style format.
 ///
 /// Read more here:
@@ -87,56 +64,48 @@ impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: Fr
 ///
 /// Input:
 ///
+///  2D images legend:
 ///  - im2d(batch size, channels, height, width): Array4.
-///  - kernel_weights(F=#Filters(channels/groups), C=#ChannelsOut(feature maps), width, height): Array4. (Feature Maps->#output volume)
-///  - bias: Array1. (Bias, is added to each channel (after having adding each Hadamard Product))
 ///  - auto_pad: ["NOTSET"->pads has meant not to be None (manually specified padding),
 ///               "SAME_UPPER"->padding equally split between axis(if odd number, extra padding added to bottom),
 ///               "SAME_LOWER"->padding equally split between axis(if odd number, extra padding added to top,
 ///               "VALID"->no padding
 ///               ]
-///  - dilations: Array1. (Dilation over kernel a.k.a. w filter)
-///  - group: i32. Number of groups
-///  - kernel_shape: Array1. If not None means the shape of kernel a.k.a. w filter. Since it's not required from the standard, it's inferred from kernel_weights
 ///  - pads: Array1. Manual padding specified accordingly to auto_pad
+///  - kernel_size: Array2. It specifies the height and width size of kernel
+///  - storage_order: Option<i32>. 0-> default is row major, 1-> is col major
 ///  - strides: Array1. Moving offset over each x input axis.
 /// Returns:
 /// -----------------------------------------------
 /// - out: Output data, of shape (B, F, H', W')
-pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
-  kernel_weights: T,
+pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   im2d: T,
-  bias: Option<&Array1<F>>,
   auto_pad: Padding,
-  _dilations: Option<&Array2<i32>>,
-  group: Option<i32>,
-  pads: V, //Option<&Array1<F>>
-  strides: V, //Option<&Array1<F>>
-) -> DataRepresentation<F>
+  pads: V,
+  kernel_size: &Array2<i32>,
+  _storage_order: Option<&i32>,
+  strides: V,
+) -> Array4<F>
   where
   // This trait bound ensures that kernel and im2d can be passed as owned array or view.
   // AsArray just ensures that im2d can be converted to an array view via ".into()".
   // Read more here: https://docs.rs/ndarray/0.12.1/ndarray/trait.AsArray.html
     T: AsArray<'a, F, Ix4>,
-    V: AsArray<'a, F, Ix1>, f32: From<F>
+    V: AsArray<'a, F, Ix1>,
+    f32: From<F>
 {
   // Initialisations
   let im2d_arr: ArrayView4<F> = im2d.into();
-  let kernel_weights_arr: ArrayView4<F> = kernel_weights.into();
+  let kernel_size_arr: ArrayView2<i32> = kernel_size.into();
   let strides_arr: ArrayView1<F> = strides.into();
   let pads_arr: ArrayView1<F> = pads.into();
   let im_col: Array2<F>; // output of fn: im2col_ref()
   let new_im_height: usize;
   let new_im_width: usize;
-  let weight_shape = kernel_weights_arr.shape();
-  let mut num_filters = weight_shape[0];
-  match group {
-    Some(g) => num_filters = num_filters / g as usize,
-    None => {}
-  }
-  let num_channels_out = weight_shape[1];
-  let kernel_height = weight_shape[2];
-  let kernel_width = weight_shape[3];
+
+  let kernel_height = kernel_size_arr.len_of(Axis(0));
+  let kernel_width = kernel_size_arr.len_of(Axis(1));
+
   let mut pads_height_start: usize = 0;
   let mut pads_height_end: usize = 0;
   let mut pads_width_start: usize = 0;
@@ -201,11 +170,6 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     }
   };
 
-  // weights.reshape(F, HH*WW*C)
-  let filter_col = kernel_weights_arr
-    .into_shape((num_filters, kernel_height * kernel_width * num_channels_out))
-    .unwrap();
-
   if auto_pad != Padding::Valid {
     let mut pad_num_h = 0;
     let mut pad_num_w = 0;
@@ -225,7 +189,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     }
     let mut im2d_arr_pad: Array4<F> = Array::zeros((
       im_batch_size,
-      num_channels_out,
+      im_channel,
       im_height + pad_num_h,
       im_width + pad_num_w,
     ));
@@ -262,14 +226,29 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     );
   }
 
-  let filter_transpose = filter_col.t();
-  let mul = im_col.dot(&filter_transpose);
-  let output = mul
-    .into_shape((new_im_height, new_im_width, num_filters, num_channels_out))
+  let out = max_pool_operation(&im_col);
+  let output = out
+    .into_shape((new_im_height, new_im_width, im_batch_size, im_channel))
     .unwrap()
     .permuted_axes([2, 3, 0, 1]);
 
-  add_bias(&output, bias)
+  output
+}
+
+pub(in crate) fn max_pool_operation<F: 'static + Float + std::ops::AddAssign>(input_arr: &Array2<F>) -> Array2<F> where f32: From<F>{
+  let input: ArrayView2<F> = input_arr.into();
+  let (rows, _cols) = input.dim();
+  let out_rows = rows;
+  let out_cols = 1;
+  let mut output = Array2::<F>::zeros((out_rows, out_cols));
+
+  for i in 0..out_rows {
+      let window = input.row(i);
+      let max_value = window.iter().fold(f32::min_value(), |max, &x| max.max(x.into()));
+      output.row_mut(i).assign(&Array1::from(vec![F::from(max_value).unwrap()]));
+  }
+
+  output
 }
 
 pub(in crate) fn get_padding_size(
@@ -358,50 +337,24 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   cols_img
 }
 
-pub(in crate) fn add_bias<F>(x: &Array4<F>, bias: Option<&Array1<F>>) -> Array4<F>
-  where
-    F: 'static + Float + std::ops::AddAssign,
-{
-  if let Some(bias_array) = bias {
-    assert_eq!(bias_array.shape()[0], x.shape()[0], "Bias array has the wrong shape {:?} for vec of shape {:?}", bias_array.shape(), x.shape());
-    // Yes this is really necessary. Broadcasting with ndarray-rust
-    // starts at the right side of the shape, so we have to add
-    // the axes by hand (else it thinks that it should compare the
-    // output width and the bias channels).
-    (x + &bias_array
-      .clone()
-      .insert_axis(Axis(2))
-      .insert_axis(Axis(3))
-      .broadcast(x.shape())
-      .unwrap())
-      .into_dimensionality()
-      .unwrap()
-  } else {
-    x.clone()
-  }
-}
-
-pub fn test_convolution(){
+pub fn test_max_pool(){
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(
-    (1, 1, 7, 5),
-    vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0]
+    (1, 1, 4, 4),
+    vec![1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.,15.,16.]
   )
     .unwrap();
 
+  println!("{:?}", input);
 // Kernel has shape (channels in, channels out, height, width)
-  let kernel: Array4<f32> = Array::from_shape_vec(
-    (1, 1, 3, 3),
-    vec![1.,1.,1.,1.,1.,1.,1.,1.,1.]
-  )
-    .unwrap();
+  let kernel_size: Array2<i32> = Array::zeros((3, 3));
 
-  let strides: Array1<f32> = array![2., 2.];
-  let pads: Array1<f32> = array![1., 0., 1., 0.];
+  let strides: Array1<f32> = array![1., 1.];
+  let pads: Array1<f32> = array![0., 0., 0., 0.];
 
   let conv_layer =
-    ConvolutionLayer::new_onnx_tensor_flow(kernel.clone(), None, Padding::NotSet, None, Some(1), pads, strides);
-  let output_layer: Array4<f32> = conv_layer.convolve(&input);
+    ConvolutionLayer::new(Padding::Valid, pads, kernel_size, Some(0), strides);
+  let output_layer: Array4<f32> = conv_layer.max_pool(&input);
 
   println!("Layer: {:?}", output_layer);
 }
