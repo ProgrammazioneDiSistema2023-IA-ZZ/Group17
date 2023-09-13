@@ -10,3 +10,4 @@ protobuf = "3.2.0"
 ndarray = "0.15.3"
 num-traits = "0.2"
 ndarray-npy = "0.8.1"
+rand = {version="0.8.5", features = [ "small_rng" ]}

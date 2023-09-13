@@ -1,9 +1,6 @@
 use ndarray::*;
 use num_traits::Float;
 
-
-//todo: check sulle dimensioni delle matrici comprese di strides, dilations, e paddings
-
 // Padding (specific way of adding zeros to the input matrix) kind used in the convolution.
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Padding {
@@ -346,7 +343,7 @@ pub fn test_max_pool(){
     .unwrap();
 
   println!("{:?}", input);
-// Kernel has shape (channels in, channels out, height, width)
+  // Kernel has shape (channels in, channels out, height, width)
   let kernel_size: Array2<i32> = Array::zeros((3, 3));
 
   let strides: Array1<f32> = array![1., 1.];
