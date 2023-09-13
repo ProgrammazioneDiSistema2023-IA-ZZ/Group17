@@ -15,7 +15,7 @@ accordingly to Protocol Buffers v2(proto2) documentation (https://protobuf.dev/p
          in proto2). e.g. Map<string, i32> shows an i32 value which is packed as a string encoding (with a certain LEN).
  */
 #[repr(C)]
-#[derive(Default, Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub enum ProtoAnnotation{
   #[default]
   Optional,
@@ -48,7 +48,7 @@ This structure contains an Attribute of a Message struct in a .proto file. (e.g.
   - tag: this is the number which identifies the attribute (i.e. 1)
  */
 #[repr(C)]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ProtoAttribute {
   pub annotation: ProtoAnnotation,
   pub attribute_name: String,
@@ -68,7 +68,7 @@ impl ProtoAttribute {
 This enum allows a certain Proto structure to be distinguished between a "message" or a "one of" or a "enum"
  */
 #[repr(C)]
-#[derive(Default, Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub enum KindOf{
   #[default]
   Message,
@@ -127,7 +127,7 @@ Specifically, let's make an example:
   - contents: this HashMap allows to contain other "message"/"oneof" structures recursively, preserving the O(1) access time
 */
 #[repr(C)]
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Proto {
   pub kind_of: KindOf, //one value between [Message, OneOf, Enum]
   pub attributes: HashMap<i32, ProtoAttribute>, //<tag, ProtoAttribute>

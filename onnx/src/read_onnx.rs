@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use crate::onnx_structure::ModelProto;
-use crate::read_proto::create_struct_from_proto_file;
 use crate::read_proto::proto_structure::{KindOf, Proto};
 
 /*
@@ -10,12 +9,7 @@ This function allows the program to read a .onnx file byte per byte and, thanks 
     ~ proto_file_path, specifies the proto file path
   - It returns: ModelProto, a runtime model proto
 */
-pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> ModelProto {
-  let proto_structure = match create_struct_from_proto_file(proto_file_path) {
-    Ok(proto) => proto,
-    Err(err) => panic!("{}", err)
-  };
-
+pub fn generate_onnx_model(onnx_file_path: &str, proto_structure: &HashMap<String, Proto>) -> ModelProto {
   let onnx_bytes = std::fs::read(onnx_file_path).expect("Failed to read file");
   let mut counter = 0; //counter of read bytes
 
@@ -37,6 +31,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
   lifo_stack_named_struct.push("model".to_string());
 
   let mut model_proto: ModelProto = ModelProto::new();
+  model_proto.special_fields.cached_size().set(onnx_bytes.len() as  u32);
 
   while counter < onnx_bytes.len() {
     //converts from byte base[10] to binary

@@ -17,12 +17,15 @@ use crate::dropout_op::test_dropout;
 use crate::global_average_pool_op::test_global_average_pool;
 
 use ndarray::{arr2, Axis, concatenate};
+<<<<<<< HEAD
+use crate::softmax::test_softmax;
+
+=======
 mod write_onnx;
 use crate::read_onnx::generate_onnx_model;
 use crate::read_proto::create_struct_from_proto_file;
 use crate::write_onnx::generate_onnx_file;
-use crate::softmax::test_softmax;
-
+>>>>>>> 74460d2dde7e498e8150f5e8e9bccc30ad6674e5
 
 fn main() {
   let proto_structure = match create_struct_from_proto_file("models/onnx.proto") {
