@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use crate::onnx_structure::ModelProto;
-use crate::read_proto::create_struct_from_proto_file;
 use crate::read_proto::proto_structure::{KindOf, Proto};
 
 /*

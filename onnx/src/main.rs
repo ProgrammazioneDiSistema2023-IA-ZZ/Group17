@@ -25,7 +25,7 @@ fn main() {
 
   let mut model = generate_onnx_model("models/squeezenet1.0-8.onnx", &proto_structure);
 
-  let done = generate_onnx_file("models/model_writed.onnx", &mut model);
+  generate_onnx_file("models/model_writed.onnx", &mut model);
 
   println!("{:?}", model);
 

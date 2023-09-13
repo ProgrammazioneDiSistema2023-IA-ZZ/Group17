@@ -20,10 +20,8 @@
 #![allow(unused_mut)]
 
 //! Generated file from `proto/onnx.proto`
-use std::vec;
-use protobuf::{Enum, EnumOrUnknown, Message, MessageField};
+use protobuf::{Enum, EnumOrUnknown, MessageField};
 use crate::onnx_structure::attribute_proto::AttributeType;
-use crate::onnx_structure::tensor_proto::DataLocation;
 
 pub fn current_structure_search(current_structure: &[String], len: usize) -> String {
     if current_structure.len() < len {
@@ -686,8 +684,6 @@ impl protobuf::Message for AttributeProto {
 
 /// Nested message and enums of message `AttributeProto`
 pub mod attribute_proto {
-    use crate::onnx_structure::AttributeProto;
-    
     ///  Note: this enum is structurally identical to the OpSchema::AttrType
     ///  enum defined in schema.h.  If you rev one, you likely need to rev the other.
     #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -3306,8 +3302,6 @@ impl protobuf::Message for TensorProto {
 
 /// Nested message and enums of message `TensorProto`
 pub mod tensor_proto {
-    use crate::onnx_structure::attribute_proto::AttributeType;
-
     ///  For very large tensors, we may want to store them in chunks, in which
     ///  case the following fields will specify the segment that is stored in
     ///  the current TensorProto.
