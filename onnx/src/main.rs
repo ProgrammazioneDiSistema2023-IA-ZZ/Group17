@@ -7,15 +7,25 @@ mod convolution_op;
 mod relu_op;
 mod max_pool_op;
 
-use crate::read_onnx::generate_onnx_model;
 use crate::convolution_op::*;
 use crate::max_pool_op::test_max_pool;
 use crate::relu_op::*;
 
 use ndarray::{arr2, Axis, concatenate};
+mod write_onnx;
+use crate::read_onnx::generate_onnx_model;
+use crate::read_proto::create_struct_from_proto_file;
+use crate::write_onnx::generate_onnx_file;
 
 fn main() {
-  let model = generate_onnx_model("models/squeezenet1.0-8.onnx", "models/onnx.proto");
+  let proto_structure = match create_struct_from_proto_file("models/onnx.proto") {
+    Ok(proto) => proto,
+    Err(err) => panic!("{}", err)
+  };
+
+  let mut model = generate_onnx_model("models/squeezenet1.0-8.onnx", &proto_structure);
+
+  let done = generate_onnx_file("models/model_writed.onnx", &mut model);
 
   println!("{:?}", model);
 
