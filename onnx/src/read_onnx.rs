@@ -27,6 +27,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
   let mut number_of_concatenated_bytes: i32; //this variable counts the number of concatenated bytes (two bytes are concatenated if the first has msb equal to 1)
   let mut value: i32;
   let mut length_object_or_enum_field_numer: i32;
+  let mut last_data_type = 0;
 
   //these lifo stacks contain respectively the structure read from the onnx and its length. E.g. ModelProto -> length 1024 bytes, GraphProto -> length 1000 bytes
   let mut lifo_stack_length: Vec<i32> = Vec::new();
@@ -118,10 +119,19 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
       let mut string_result = String::new();
       if field_name == "raw_data" { //raw_data store the input tensors and initializers data
         let mut i = 1;
-        while i <= value { //getting all the raw_data (each data is a f32 so needs 4 bytes to be completely read)
-          string_result.push_str(&f32::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize + 1usize)], onnx_bytes[counter + (i as usize + 2usize)], onnx_bytes[counter + (i as usize + 3usize)]]).to_string());
+        while i <= value { //getting all the raw_data (each data is a f32/i64 so needs 4/8 bytes to be completely read)
+          match last_data_type{
+            1 => {
+              string_result.push_str(&f32::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize + 1usize)], onnx_bytes[counter + (i as usize + 2usize)], onnx_bytes[counter + (i as usize + 3usize)]]).to_string());
+              i = i + 4;
+            },
+            7 => {
+              string_result.push_str(&i64::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize + 1usize)], onnx_bytes[counter + (i as usize + 2usize)], onnx_bytes[counter + (i as usize + 3usize)], onnx_bytes[counter + (i as usize + 4usize)], onnx_bytes[counter + (i as usize + 5usize)], onnx_bytes[counter + (i as usize + 6usize)], onnx_bytes[counter + (i as usize + 7usize)]]).to_string());
+              i = i + 8;
+            },
+            _ => panic!("Data Type Not Managed into read_onnx->raw_data: {}", last_data_type)
+          }
           string_result.push_str(", ");
-          i = i + 4;
         }
       } else { //reading a string, parsing bytes to ascii
         for i in 1..=value {
@@ -166,6 +176,9 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
           binary_string = concat_bytes(binary_string, &mut counter, &onnx_bytes, &mut number_of_concatenated_bytes)
         }
         value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
+        if field_name == "data_type"{
+          last_data_type = value;
+        }
 
         model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), value, 0.00, String::default(), false);
 

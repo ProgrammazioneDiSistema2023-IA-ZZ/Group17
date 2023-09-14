@@ -23,9 +23,15 @@ use crate::read_onnx::generate_onnx_model;
 use crate::write_onnx::generate_onnx_file;
 
 fn main() {
-  let mut model = generate_onnx_model("models/squeezenet1.0-8.onnx", "models/onnx.proto");
-  generate_onnx_file("models/model_writed.onnx", &mut model);
+  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
 
+  let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
+  onnx_file = String::from(onnx_generated_file[0]);
+  onnx_file.push_str("_generated.onnx");
+  generate_onnx_file(&onnx_file, &mut model);
+
+  /*
   println!("{:?}", model);
 
   test_convolution();
@@ -35,6 +41,7 @@ fn main() {
   test_dropout();
   test_global_average_pool();
   test_softmax();
+  */
 }
 
 fn test_concat(){
