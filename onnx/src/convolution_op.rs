@@ -129,6 +129,9 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let new_im_height: usize;
   let new_im_width: usize;
   let weight_shape = kernel_weights_arr.shape();
+
+  assert!(im2d_arr.shape()[1] != weight_shape[0] * group.unwrap() as usize || weight_shape[1] % group.unwrap() as usize != 0);
+
   let mut num_filters = weight_shape[0];
   match group {
     Some(g) => num_filters = num_filters / g as usize,
@@ -223,7 +226,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       pad_num_h = pads_height_start+pads_height_end;
       pad_num_w = pads_width_start+pads_width_end;
     }
-    let mut im2d_arr_pad: Array4<F> = Array::zeros((
+    let mut im2d_arr_pad: Array4<F> = Array4::zeros((
       im_batch_size,
       num_channels_out,
       im_height + pad_num_h,
@@ -339,7 +342,7 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   let new_h = (im_height - ker_height) / stride_h + 1;
   let new_w = (im_width - ker_width) / stride_w + 1;
   let mut cols_img: Array2<F> =
-    Array::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+    Array2::zeros((new_h * new_w, im_channel * ker_height * ker_width));
   let mut cont = 0_usize;
   for i in 1..new_h + 1 {
     for j in 1..new_w + 1 {
@@ -383,14 +386,14 @@ pub(in crate) fn add_bias<F>(x: &Array4<F>, bias: Option<&Array1<F>>) -> Array4<
 
 pub fn test_convolution(){
   // Input has shape (batch_size, channels, height, width)
-  let input = Array::from_shape_vec(
+  let input: DataRepresentation<f32> = Array4::from_shape_vec(
     (1, 1, 7, 5),
     vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0]
   )
     .unwrap();
 
 // Kernel has shape (channels in, channels out, height, width)
-  let kernel: Array4<f32> = Array::from_shape_vec(
+  let kernel: Array4<f32> = Array4::from_shape_vec(
     (1, 1, 3, 3),
     vec![1.,1.,1.,1.,1.,1.,1.,1.,1.]
   )

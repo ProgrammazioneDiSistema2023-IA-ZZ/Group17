@@ -11,6 +11,7 @@ mod max_pool_op;
 mod dropout_op;
 mod global_average_pool_op;
 mod softmax;
+mod model_inference;
 
 use crate::convolution_op::*;
 use crate::max_pool_op::test_max_pool;
@@ -22,6 +23,8 @@ use crate::softmax::test_softmax;
 use crate::read_onnx::generate_onnx_model;
 use crate::write_onnx::generate_onnx_file;
 
+use crate::model_inference::inference;
+
 fn main() {
   let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
   let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
@@ -29,6 +32,9 @@ fn main() {
   let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
   onnx_file = String::from(onnx_generated_file[0]);
   onnx_file.push_str("_generated.onnx");
+
+  inference(&mut model);
+
   generate_onnx_file(&onnx_file, &mut model);
 
   /*
