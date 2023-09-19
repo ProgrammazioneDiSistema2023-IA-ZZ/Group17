@@ -129,8 +129,10 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let new_im_height: usize;
   let new_im_width: usize;
   let weight_shape = kernel_weights_arr.shape();
+  //let bias_arr: Vec<F> = bias.into().to_vec();
+  //let bias_vec: Vec<f32> = bias_arr.to_vec().into();
 
-  assert!(im2d_arr.shape()[1] != weight_shape[0] * group.unwrap() as usize || weight_shape[1] % group.unwrap() as usize != 0);
+  assert!(im2d_arr.shape()[1] == (weight_shape[0] * group.unwrap() as usize) && weight_shape[1] % group.unwrap() as usize == 0);
 
   let mut num_filters = weight_shape[0];
   match group {
@@ -206,7 +208,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
 
   // weights.reshape(F, HH*WW*C)
   let filter_col = kernel_weights_arr
-    .into_shape((num_filters, kernel_height * kernel_width * num_channels_out))
+    .into_shape((num_channels_out, kernel_height * kernel_width * num_filters))
     .unwrap();
 
   if auto_pad != Padding::Valid {
@@ -228,7 +230,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     }
     let mut im2d_arr_pad: Array4<F> = Array4::zeros((
       im_batch_size,
-      num_channels_out,
+      im_channel,
       im_height + pad_num_h,
       im_width + pad_num_w,
     ));
@@ -268,7 +270,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let filter_transpose = filter_col.t();
   let mul = im_col.dot(&filter_transpose);
   let output = mul
-    .into_shape((new_im_height, new_im_width, num_filters, num_channels_out))
+    .into_shape((new_im_height, new_im_width, im_batch_size, num_channels_out))
     .unwrap()
     .permuted_axes([2, 3, 0, 1]);
 
@@ -366,15 +368,15 @@ pub(in crate) fn add_bias<F>(x: &Array4<F>, bias: Option<&Array1<F>>) -> Array4<
     F: 'static + Float + std::ops::AddAssign,
 {
   if let Some(bias_array) = bias {
-    assert_eq!(bias_array.shape()[0], x.shape()[0], "Bias array has the wrong shape {:?} for vec of shape {:?}", bias_array.shape(), x.shape());
+    assert_eq!(bias_array.shape()[0], x.shape()[1], "Bias array has the wrong shape {:?} for vec of shape {:?}", bias_array.shape(), x.shape());
     // Yes this is really necessary. Broadcasting with ndarray-rust
     // starts at the right side of the shape, so we have to add
     // the axes by hand (else it thinks that it should compare the
     // output width and the bias channels).
     (x + &bias_array
       .clone()
+      .insert_axis(Axis(1))
       .insert_axis(Axis(2))
-      .insert_axis(Axis(3))
       .broadcast(x.shape())
       .unwrap())
       .into_dimensionality()
@@ -382,29 +384,4 @@ pub(in crate) fn add_bias<F>(x: &Array4<F>, bias: Option<&Array1<F>>) -> Array4<
   } else {
     x.clone()
   }
-}
-
-pub fn test_convolution(){
-  // Input has shape (batch_size, channels, height, width)
-  let input: DataRepresentation<f32> = Array4::from_shape_vec(
-    (1, 1, 7, 5),
-    vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0]
-  )
-    .unwrap();
-
-// Kernel has shape (channels in, channels out, height, width)
-  let kernel: Array4<f32> = Array4::from_shape_vec(
-    (1, 1, 3, 3),
-    vec![1.,1.,1.,1.,1.,1.,1.,1.,1.]
-  )
-    .unwrap();
-
-  let strides: Array1<f32> = array![2., 2.];
-  let pads: Array1<f32> = array![1., 0., 1., 0.];
-
-  let conv_layer =
-    ConvolutionLayer::new_onnx_tensor_flow(kernel.clone(), None, Padding::NotSet, None, Some(1), pads, strides);
-  let output_layer: Array4<f32> = conv_layer.convolve(&input);
-
-  println!("Layer: {:?}", output_layer);
 }

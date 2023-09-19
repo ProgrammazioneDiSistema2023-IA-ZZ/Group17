@@ -1,19 +1,17 @@
-use std::ops::Add;
-use ndarray::{Array, Array1, Array4, Dim, Ix4};
+use ndarray::{Array1, Array4};
 use rand::Rng;
 use crate::onnx_structure::ModelProto;
 
 use crate::convolution_op::*;
-use crate::onnx_structure::*;
 use crate::onnx_structure::tensor_shape_proto::dimension::Value::{DimParam, DimValue};
 use crate::onnx_structure::type_proto::Value;
 
 
-pub(crate) fn inference(model: &mut ModelProto) {
+pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
   for node in &model.graph.node {
     let inputs = &node.input;
     let outputs = &node.output;
-    let opertion = match &node.op_type {
+    let operation = match &node.op_type {
       None => { panic!("Operation NOT found for node {}", &node.name.as_ref().unwrap()) }
       Some(op) => { op }
     };
@@ -76,8 +74,8 @@ pub(crate) fn inference(model: &mut ModelProto) {
     }
 
     let mut strides: &Vec<i64> = &Vec::new();
-    let mut pads: &Vec<i64> = &Vec::new();;
-    let mut kernel_shape: &Vec<i64> = &Vec::new();;
+    let mut pads: &Vec<i64> = &Vec::new();
+    let mut kernel_shape: &Vec<i64> = &Vec::new();
 
     for attr in &node.attribute {
       if attr.name.is_some() {
@@ -97,53 +95,28 @@ pub(crate) fn inference(model: &mut ModelProto) {
     }
 
     if !strides.is_empty() && !kernel_shape.is_empty() && !pads.is_empty() {
-      match opertion.as_str() {
+      match operation.as_str() {
         "Conv" => {
-          let (b, c, h, w) = (*shape[0][0] as usize, *shape[0][1] as usize, *shape[0][2] as usize, *shape[0][3] as usize);
-          let num_elements = 1 * 1 * h * w * 4;
+          let (bs, cs, hs, ws) = (*shape[0][0] as usize, *shape[0][1] as usize, *shape[0][2] as usize, *shape[0][3] as usize);
+          let (mk, gk, hk, wk) = (*shape[1][0] as usize, *shape[1][1] as usize, *shape[1][2] as usize, *shape[1][3] as usize);
 
-          // Create a random number generator
-          let mut rng = rand::thread_rng();
-
-          // Generate a random Vec<u8>
-          let random_data: Vec<u8> = (0..num_elements).map(|_| rng.gen::<u8>()).collect();
-
-          let mut part_row = vec![];
-          for chunk in random_data.chunks(4) {
-            let float32 = u8_to_f32(chunk);
-            part_row.push(float32);
-          }
-
-          let input = Array4::from_shape_vec((1, 1, h, w), part_row.clone())
+          let input = Array4::from_shape_vec((bs, cs, hs, ws), data_0.clone())
             .unwrap();
-
-          let kernel: Array4<f32> = Array4::from_shape_vec((1, 1, 3, 3), vec![1.; 9])
+          let kernel: Array4<f32> = Array4::from_shape_vec((mk, gk, hk, wk), raw_data[0].clone())
             .unwrap();
-
-          let bias: Array1<f32> = Array1::from_shape_vec((64), raw_data[1].clone())
+          let bias: Array1<f32> = Array1::from_shape_vec(*shape[2][0] as usize, raw_data[1].clone())
             .unwrap();
-          /* per lo shape del bias fare una match sul numero delle dimensioni dello shape[2] */
-
-          //println!("{:?}", part_row.clone());
-          //println!("{:?}", raw_data[0]);
-          //println!("{:?}", raw_data[1]);
-
           let str: Array1<f32> = strides.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
           let pad: Array1<f32> = pads.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
 
-          let conv_layer =
-            ConvolutionLayer::new_onnx_tensor_flow(kernel.clone(), Some(bias), Padding::NotSet, None, Some(1), pad, str);
+          let conv_layer = ConvolutionLayer::new_onnx_tensor_flow(kernel.clone(), Some(bias), Padding::NotSet, None, Some(1), pad, str);
           let output_layer: Array4<f32> = conv_layer.convolve(&input);
-          println!("Layer: {:?}", output_layer);
+          println!("Convolve Output: {:?}", output_layer);
         }
         _ => { panic!("INFERENCE OPERATION NOT FOUND FOR NODE {}", &node.name.as_ref().unwrap()) }
       }
     }
   }
-}
-
-fn get_chunk()  {
-
 }
 
 fn u8_to_f32(bytes: &[u8]) -> f32 {

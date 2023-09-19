@@ -1,5 +1,6 @@
 pub mod onnx_structure;
 
+use std::io::BufRead;
 use ndarray::{arr2, Axis, concatenate};
 
 mod read_proto;
@@ -12,13 +13,6 @@ mod dropout_op;
 mod global_average_pool_op;
 mod softmax;
 mod model_inference;
-
-use crate::convolution_op::*;
-use crate::max_pool_op::test_max_pool;
-use crate::relu_op::*;
-use crate::dropout_op::test_dropout;
-use crate::global_average_pool_op::test_global_average_pool;
-use crate::softmax::test_softmax;
 
 use crate::read_onnx::generate_onnx_model;
 use crate::write_onnx::generate_onnx_file;
@@ -33,24 +27,16 @@ fn main() {
   onnx_file = String::from(onnx_generated_file[0]);
   onnx_file.push_str("_generated.onnx");
 
-  inference(&mut model);
+  let data_0 = read_data_0().unwrap();
+
+  inference(&mut model, data_0);
 
   generate_onnx_file(&onnx_file, &mut model);
 
-  /*
   println!("{:?}", model);
-
-  test_convolution();
-  test_relu();
-  test_max_pool();
-  test_concat();
-  test_dropout();
-  test_global_average_pool();
-  test_softmax();
-  */
 }
 
-fn test_concat(){
+fn test_concat() {
   let a = arr2(&[[2., 2.],
     [3., 3.]]);
   assert!(
@@ -60,4 +46,35 @@ fn test_concat(){
       [2., 2.],
       [3., 3.]]))
   );
+}
+
+fn read_data_0() -> Option<Vec<f32>>{
+  use std::fs::File;
+  use std::io::BufReader;
+
+  // Specify the file path you want to read
+  let file_path = "data_0.txt"; // Replace with your file path
+
+  // Open the file
+  let file = File::open(file_path).unwrap();
+  let reader = BufReader::new(file);
+
+  // Create a Vec to store the data
+  let mut data: Vec<f32> = Vec::new();
+
+  // Read the data from the file
+  for line in reader.lines() {
+    let line = line.unwrap();
+    // Parse each line as a f32 and push it to the Vec
+    if let Ok(value) = line.parse::<f32>() {
+      data.push(value);
+    } else {
+      eprintln!("Error parsing line: {}", line);
+    }
+  }
+
+  // Now 'data' contains the Vec<f32> with the data from the file
+  //println!("{:?}", data);
+
+  Some(data)
 }
