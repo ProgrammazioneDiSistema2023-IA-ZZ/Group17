@@ -1,7 +1,6 @@
 pub mod onnx_structure;
 
 use std::io::BufRead;
-use ndarray::{arr2, Axis, concatenate};
 
 mod read_proto;
 mod read_onnx;
@@ -18,45 +17,35 @@ use crate::read_onnx::generate_onnx_model;
 use crate::write_onnx::generate_onnx_file;
 
 use crate::model_inference::inference;
+use crate::softmax::test_softmax;
 
 fn main() {
   let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  let input_path = "data_0.txt";
+
   let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
 
+  let input_data = read_input_data(input_path).unwrap();
+  let input_path_split: Vec<&str> = input_path.split(".txt").collect();
+  let input_name = String::from(input_path_split[0]);
+  inference(&mut model, input_data, input_name.as_str());
+  test_softmax();
+  /*
   let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
   onnx_file = String::from(onnx_generated_file[0]);
   onnx_file.push_str("_generated.onnx");
-
-  let data_0 = read_data_0().unwrap();
-
-  inference(&mut model, data_0);
-
   generate_onnx_file(&onnx_file, &mut model);
+  */
 
-  println!("{:?}", model);
+  //println!("{:?}", model);
 }
 
-fn test_concat() {
-  let a = arr2(&[[2., 2.],
-    [3., 3.]]);
-  assert!(
-    concatenate(Axis(0), &[a.view(), a.view()])
-      == Ok(arr2(&[[2., 2.],
-      [3., 3.],
-      [2., 2.],
-      [3., 3.]]))
-  );
-}
-
-fn read_data_0() -> Option<Vec<f32>>{
+fn read_input_data(input_path: &str) -> Option<Vec<f32>>{
   use std::fs::File;
   use std::io::BufReader;
 
-  // Specify the file path you want to read
-  let file_path = "data_0.txt"; // Replace with your file path
-
   // Open the file
-  let file = File::open(file_path).unwrap();
+  let file = File::open(input_path).unwrap();
   let reader = BufReader::new(file);
 
   // Create a Vec to store the data

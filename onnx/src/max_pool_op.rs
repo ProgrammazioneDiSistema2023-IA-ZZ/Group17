@@ -88,8 +88,7 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   // AsArray just ensures that im2d can be converted to an array view via ".into()".
   // Read more here: https://docs.rs/ndarray/0.12.1/ndarray/trait.AsArray.html
     T: AsArray<'a, F, Ix4>,
-    V: AsArray<'a, F, Ix1>,
-    f32: From<F>
+    V: AsArray<'a, F, Ix1>, f32: From<F>
 {
   // Initialisations
   let im2d_arr: ArrayView4<F> = im2d.into();
@@ -160,8 +159,8 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       new_im_width = ((im_width - kernel_width + (pads_width_start + pads_width_end)) / im_width_stride) + 1;
     },
     Padding::Valid => {
-      // H' =  ((H - HH) / stride_height ) + 1
-      // W' =  ((W - WW) / stride_width ) + 1
+      // H' =  (H - HH) / (stride_height + 1)
+      // W' =  (W - WW) / (stride_width + 1)
       new_im_height = ((im_height - kernel_height) / im_height_stride) + 1;
       new_im_width = ((im_width - kernel_width) / im_width_stride) + 1;
     }
@@ -223,7 +222,7 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     );
   }
 
-  let out = max_pool_operation(&im_col);
+  let out = max_pool_operation(&im_col, im_channel);
   let output = out
     .into_shape((new_im_height, new_im_width, im_batch_size, im_channel))
     .unwrap()
@@ -232,12 +231,12 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   output
 }
 
-pub(in crate) fn max_pool_operation<F: 'static + Float + std::ops::AddAssign>(input_arr: &Array2<F>) -> Array2<F> where f32: From<F>{
+pub(in crate) fn max_pool_operation<F: 'static + Float + std::ops::AddAssign>(input_arr: &Array2<F>, num_channels_out: usize) -> Array2<F> where f32: From<F>{
   let input: ArrayView2<F> = input_arr.into();
   let (rows, _cols) = input.dim();
   let out_rows = rows;
   let out_cols = 1;
-  let mut output = Array2::<F>::zeros((out_rows, out_cols));
+  let mut output = Array2::<F>::zeros((out_rows, num_channels_out));
 
   for i in 0..out_rows {
       let window = input.row(i);

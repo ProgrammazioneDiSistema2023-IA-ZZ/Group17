@@ -13,7 +13,7 @@ use crate::max_pool_op::{ConvolutionLayer as ConvLayerMaxPool, Padding as PadMax
 use crate::softmax::softmax;
 
 
-pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
+pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>, input_name: &str) {
   let mut hashmap_outputs_to_inputs: HashMap<String, Array4<f32>> = HashMap::new();
 
   for node in &model.graph.node {
@@ -98,7 +98,7 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
     let mut strides: &Vec<i64> = &Vec::new();
     let mut pads: &Vec<i64> = &Vec::new();
     let mut kernel_shape: &Vec<i64> = &Vec::new();
-    let mut axis: &Vec<i64> = &Vec::new();
+    let mut axis: i64 = -1;
     let mut ratio: f32 = Default::default();
 
     if operation != "Relu" && operation != "GlobalAveragePool" && operation != "Softmax" {
@@ -116,7 +116,7 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
               kernel_shape = &attr.ints;
             }
             "axis" => {
-              axis = &attr.ints;
+              axis = attr.i.unwrap();
             }
             "ratio" => {
               ratio = attr.f.unwrap()
@@ -129,21 +129,21 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
 
     match operation.as_str() {
       "Conv" => {
-        let (mk, gk, hk, wk) = (*shape[1][0] as usize, *shape[1][1] as usize, *shape[1][2] as usize, *shape[1][3] as usize);
-
         let input;
-        /* TODO: non è detto che l'input principale sita data_0 per tutti i modelli!! */
-        if inputs[0] == "data_0" {
-          let (bs, cs, hs, ws) = (*shape[0][0] as usize, *shape[0][1] as usize, *shape[0][2] as usize, *shape[0][3] as usize);
-          input = Array4::from_shape_vec((bs, cs, hs, ws), data_0.clone())
-            .unwrap();
+        let mut displacement = 0;
+
+        if inputs[0] == input_name {
+          input = Array4::from_shape_vec((*shape[displacement][0] as usize, *shape[displacement][1] as usize, *shape[displacement][2] as usize, *shape[displacement][3] as usize), data_0.clone()).unwrap();
+          displacement+=1;
         } else {
           input = Array4::from(hashmap_outputs_to_inputs.get(inputs[0].as_str()).unwrap().clone());
         }
 
+        let (mk, gk, hk, wk) = (*shape[displacement][0] as usize, *shape[displacement][1] as usize, *shape[displacement][2] as usize, *shape[displacement][3] as usize);
+        displacement+=1;
         let kernel: Array4<f32> = Array4::from_shape_vec((mk, gk, hk, wk), raw_data[0].clone())  /* RAW_DATA[0] -> W */
           .unwrap();
-        let bias: Array1<f32> = Array1::from_shape_vec(*shape[2][0] as usize, raw_data[1].clone()) /* RAW_DATA[1] -> B */
+        let bias: Array1<f32> = Array1::from_shape_vec(*shape[displacement][0] as usize, raw_data[1].clone()) /* RAW_DATA[1] -> B */
           .unwrap();
         let str: Array1<f32> = strides.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
         let pad: Array1<f32> = pads.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
@@ -151,19 +151,16 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
         let conv_layer = ConvLayerConv::new_onnx_tensor_flow(kernel.clone(), Some(bias), PadConv::NotSet, None, Some(1), pad, str);
         let output_layer: Array4<f32> = conv_layer.convolve(&input);
 
-        println!("Conv: {:?}", output_layer);
-
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
+        //println!("Conv: {:?}", output_layer);
+        println!("Convolve, done!");
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer);
       }
       "Relu" => {
         let input = Array4::from(hashmap_outputs_to_inputs.get(inputs[0].as_str()).unwrap().clone());
-
         let output_layer: Array4<f32> = relu(&input);
 
-        println!("Relu: {:?}", output_layer);
-
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
+        //println!("Relu: {:?}", output_layer);
+        println!("Relu, done!");
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer);
       }
       "MaxPool" => {
@@ -171,28 +168,25 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
 
         let (mk, gk) = (kernel_shape[0] as usize, kernel_shape[1] as usize);
 
-        let kernel: Array2<i32> = Array2::zeros((mk, gk)); /* TODO: CONTROLLARE */
+        let kernel: Array2<i32> = Array2::zeros((mk, gk));
         let str: Array1<f32> = strides.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
         let pad: Array1<f32> = pads.iter().map(|&x| x as f32).collect::<Vec<f32>>().into();
 
         let conv_layer = ConvLayerMaxPool::new(PadMaxPool::Valid, pad, kernel, Some(0), str);
         let output_layer: Array4<f32> = conv_layer.max_pool(&input);
 
-        println!("MaxPool: {:?}", output_layer);
-
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
+        //println!("MaxPool: {:?}", output_layer);
+        println!("MaxPool, done!");
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer);
       }
       "Concat" => {
         let input_1 = Array4::from(hashmap_outputs_to_inputs.get(inputs[0].as_str()).unwrap().clone());
         let input_2 = Array4::from(hashmap_outputs_to_inputs.get(inputs[1].as_str()).unwrap().clone());
 
-        /* TODO: Non è detto ci sia sempre e solo un axis in posizione 0 */
-        let output_layer: Array4<f32> = concatenate(Axis(axis[0] as usize), &[input_1.view(), input_2.view()]).unwrap();
+        let output_layer: Array4<f32> = concatenate(Axis(axis as usize), &[input_1.view(), input_2.view()]).unwrap();
 
-        println!("Concatenate: {:?}", output_layer);
-
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
+        //println!("Concatenate: {:?}", output_layer);
+        println!("Concatenate, done!");
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer);
       }
       "Dropout" => {
@@ -200,15 +194,13 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
 
         let output_layer = dropout(input, Some(ratio), None, false, false);
 
-        println!("Dropout: {:?}", output_layer.0);
+        //println!("Dropout: {:?}", output_layer.0);
+        println!("Dropout, done!");
 
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer.0);
 
         if output_layer.1.is_some() {
           println!("Mask: {:?}", output_layer.1.unwrap());
-
-          /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
           //hashmap_outputs_to_inputs.insert(outputs[1].clone(), output_layer.1.unwrap());
         }
       }
@@ -217,19 +209,20 @@ pub(crate) fn inference(model: &mut ModelProto, data_0: Vec<f32>) {
 
         let output_layer = global_average_pool(input);
 
-        println!("GlobalAveragePool: {:?}", output_layer);
+        //println!("GlobalAveragePool: {:?}", output_layer);
+        println!("GlobalAveragePool, done!");
 
-        /* TODO: non è detto che ci sia sempre e solo un output quindi controllare */
         hashmap_outputs_to_inputs.insert(outputs[0].clone(), output_layer);
       }
-      "SoftMax" => {
+      "Softmax" => {
         let input = Array4::from(hashmap_outputs_to_inputs.get(inputs[0].as_str()).unwrap().clone());
 
         let result = softmax(input, None);
 
-        println!("SoftMax: {:?}", result);
+        println!("SoftMax, done!");
+        dbg!(result);
       }
-      _ => { panic!("INFERENCE OPERATION NOT FOUND FOR NODE {}", &node.name.as_ref().unwrap()) }
+      _ => { panic!("INFERENCE OPERATION '{}' NOT FOUND FOR NODE {}", operation.as_str(), &node.name.as_ref().unwrap()) }
     }
   }
 }

@@ -199,8 +199,8 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       new_im_width = ((im_width - kernel_width + (pads_width_start + pads_width_end)) / im_width_stride) + 1;
     },
     Padding::Valid => {
-      // H' =  ((H - HH) / stride_height ) + 1
-      // W' =  ((W - WW) / stride_width ) + 1
+      // H' =  ((H - HH) / stride_height) + 1
+      // W' =  ((W - WW) / stride_width) + 1
       new_im_height = ((im_height - kernel_height) / im_height_stride) + 1;
       new_im_width = ((im_width - kernel_width) / im_width_stride) + 1;
     }
