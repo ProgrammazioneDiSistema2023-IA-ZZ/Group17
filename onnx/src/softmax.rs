@@ -2,7 +2,7 @@ use ndarray::{Array, Axis};
 use ndarray::prelude::*;
 
 //OPSET VERSION = 8
-fn softmax(mut x: Array2<f32>, axis: Option<usize>) -> Array2<f32> {
+pub fn softmax(mut x: Array2<f32>, axis: Option<usize>) -> Array2<f32> {
   let axis = axis.unwrap_or(1);
   let max_val = x.fold_axis(Axis(axis), f32::NEG_INFINITY, |&acc, &elt| elt.max(acc));
   x -= &max_val.insert_axis(Axis(axis));

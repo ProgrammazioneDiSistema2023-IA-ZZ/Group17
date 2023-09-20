@@ -30,7 +30,7 @@ pub struct ConvolutionLayer<F: Float> {
 
 impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: From<F>{
   // Creates new convolution layer.
-  fn new(
+  pub(crate) fn new(
     kernel: Array4<F>,
     bias: Option<Array1<F>>,
     auto_pad: Padding,
