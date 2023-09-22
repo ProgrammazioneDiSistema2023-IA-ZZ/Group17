@@ -1,14 +1,16 @@
 use ndarray::{Array, Axis};
 use ndarray::prelude::*;
+use num_traits::real::Real;
 
 //OPSET VERSION = 8
 pub fn softmax(input: Array4<f32>, axis: Option<usize>) -> Array2<f32> {
   let batch_size = input.len_of(Axis(0));
   let other_size = input.len_of(Axis(1))*input.len_of(Axis(2))*input.len_of(Axis(3));
   let mut x: Array2<f32> = input.into_shape((batch_size, other_size)).unwrap();
+  //let mut x_64 = x.map(|x| *x as f64);
 
   let axis = axis.unwrap_or(1);
-  let max_val = x.fold_axis(Axis(axis), f32::NEG_INFINITY, |&acc, &elt| elt.max(acc));
+  let max_val = x.fold_axis(Axis(axis), f32::NEG_INFINITY, |&max, &el| el.max(max));
   x -= &max_val.insert_axis(Axis(axis));
   let exp_x = x.mapv(f32::exp);
   let sum_exp_x = exp_x.sum_axis(Axis(axis));

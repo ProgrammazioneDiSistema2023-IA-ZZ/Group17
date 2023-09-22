@@ -117,10 +117,31 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
       value = u64::from_str_radix(&*binary_string, 2).unwrap() as i32;
 
       let mut string_result = String::new();
-      if field_name == "raw_data" { //raw_data store the input tensors and initializers data
+
+      if field_name == "int64_data"{
+        let mut j = 0;
+        let mut aus: i64;
+        let mut phantom_counter = counter+1;
+        let mut phantom_number_of_concatenated_bytes = number_of_concatenated_bytes;
+        let mut old_number_of_concatenated_bytes = number_of_concatenated_bytes;
+        //println!("{} {} {} {}", onnx_bytes[phantom_counter], onnx_bytes[phantom_counter+1], onnx_bytes[phantom_counter+2], onnx_bytes[phantom_counter+3]);
+        while j < value {
+          //println!("{}", onnx_bytes[phantom_counter]);
+          binary_string = format!("{:b}", onnx_bytes[phantom_counter]);
+          if binary_string.len() >= 8 {
+            binary_string = concat_bytes(binary_string, &mut phantom_counter, &onnx_bytes, &mut phantom_number_of_concatenated_bytes)
+          }
+          aus = i64::from_str_radix(&*binary_string, 2).unwrap();
+          string_result.push_str(&aus.to_string());
+          string_result.push_str(", ");
+          j+=(phantom_number_of_concatenated_bytes-old_number_of_concatenated_bytes)+1;
+          old_number_of_concatenated_bytes = phantom_number_of_concatenated_bytes;
+          phantom_counter+=1;
+        }
+      } else if field_name == "raw_data" || field_name == "float_data"{ //raw_data store the input tensors and initializers data
         let mut i = 1;
         while i <= value { //getting all the raw_data (each data is a f32/i64 so needs 4/8 bytes to be completely read)
-          match last_data_type{
+          match last_data_type {
             1 => {
               string_result.push_str(&f32::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize + 1usize)], onnx_bytes[counter + (i as usize + 2usize)], onnx_bytes[counter + (i as usize + 3usize)]]).to_string());
               i = i + 4;
@@ -129,7 +150,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
               string_result.push_str(&i64::from_le_bytes([onnx_bytes[counter + i as usize], onnx_bytes[counter + (i as usize + 1usize)], onnx_bytes[counter + (i as usize + 2usize)], onnx_bytes[counter + (i as usize + 3usize)], onnx_bytes[counter + (i as usize + 4usize)], onnx_bytes[counter + (i as usize + 5usize)], onnx_bytes[counter + (i as usize + 6usize)], onnx_bytes[counter + (i as usize + 7usize)]]).to_string());
               i = i + 8;
             },
-            _ => panic!("Data Type Not Managed into read_onnx->raw_data: {}", last_data_type)
+            _ => panic!("Data Type Not Managed into read_onnx->raw_data/float_data: {}", last_data_type)
           }
           string_result.push_str(", ");
         }
@@ -145,6 +166,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
       model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, 0.00, string_result.clone(), false);
 
       //println!("String/Raw Data Case: ({}) In {} => {} = {} ({})", field_number, lifo_stack_struct.last().unwrap(), field_name, string_result, wire_type);
+
       //decreasing the length of the current onnx structure by 1 Byte (wire type) + 1 Byte (field number) + x Bytes for the concatenated bytes needed to specify the structure length in the .onnx + y Bytes (value) for the string/raw data just read
       decrement_length(&mut lifo_stack_length, &mut lifo_stack_struct, &mut lifo_stack_named_struct, value + 2 + number_of_concatenated_bytes);
       counter += value as usize;

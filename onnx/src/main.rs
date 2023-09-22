@@ -1,6 +1,8 @@
 pub mod onnx_structure;
 
-use std::io::BufRead;
+use std::io::{BufRead, Read};
+use std::fs::{File};
+use protobuf::{Message};
 
 mod read_proto;
 mod read_onnx;
@@ -12,24 +14,28 @@ mod dropout_op;
 mod global_average_pool_op;
 mod softmax;
 mod model_inference;
+mod reshape_op;
 
 use crate::read_onnx::generate_onnx_model;
 use crate::write_onnx::generate_onnx_file;
-
 use crate::model_inference::inference;
-use crate::softmax::test_softmax;
+use crate::onnx_structure::TensorProto;
 
 fn main() {
-  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
-  let input_path = "data_0.txt";
+  let mut onnx_file = String::from("models/mnist-8.onnx");
+  let input_path = "mnist_data_0.pb";
+  let output_path = "mnist_output_0.pb";
+  let input_tensor_name = vec!["Input3", "Parameter193"];
 
   let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+//println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();
-  let input_path_split: Vec<&str> = input_path.split(".txt").collect();
-  let input_name = String::from(input_path_split[0]);
-  inference(&mut model, input_data, input_name.as_str());
-  test_softmax();
+  let output_data = read_input_data(output_path).unwrap();
+
+  inference(&mut model, input_data, input_tensor_name);
+  println!("Expected Data: {:?}", output_data);
+
   /*
   let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
   onnx_file = String::from(onnx_generated_file[0]);
@@ -37,33 +43,27 @@ fn main() {
   generate_onnx_file(&onnx_file, &mut model);
   */
 
-  //println!("{:?}", model);
+
 }
 
 fn read_input_data(input_path: &str) -> Option<Vec<f32>>{
-  use std::fs::File;
-  use std::io::BufReader;
+  let mut res: Option<Vec<f32>> = None;
 
-  // Open the file
-  let file = File::open(input_path).unwrap();
-  let reader = BufReader::new(file);
+  let mut file = File::open(input_path).expect("Cannot open input file");
 
-  // Create a Vec to store the data
-  let mut data: Vec<f32> = Vec::new();
+  let mut buffer = Vec::new();
+  file.read_to_end(&mut buffer).expect("Error while reading file");
 
-  // Read the data from the file
-  for line in reader.lines() {
-    let line = line.unwrap();
-    // Parse each line as a f32 and push it to the Vec
-    if let Ok(value) = line.parse::<f32>() {
-      data.push(value);
-    } else {
-      eprintln!("Error parsing line: {}", line);
-    }
-  }
+  let parsed_message = TensorProto::parse_from_bytes(&buffer).expect("Error while deserializing the message");
 
-  // Now 'data' contains the Vec<f32> with the data from the file
-  //println!("{:?}", data);
+  res = Some(parsed_message.raw_data.clone().unwrap().chunks_exact(4).map(|chunk| u8_to_f32(chunk)).collect());
 
-  Some(data)
+  res
+}
+
+fn u8_to_f32(bytes: &[u8]) -> f32 {
+  assert_eq!(bytes.len(), 4);
+  let mut array: [u8; 4] = Default::default();
+  array.copy_from_slice(&bytes);
+  f32::from_le_bytes(array)
 }

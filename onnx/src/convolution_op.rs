@@ -1,5 +1,9 @@
 use ndarray::*;
 use num_traits::Float;
+use num_traits::real::Real;
+use protobuf::text_format::print_to;
+use crate::onnx_structure::tensor_proto::DataLocation::DEFAULT;
+
 pub type DataRepresentation<F> = Array4<F>;
 
 // Padding (specific way of adding zeros to the input matrix) kind used in the convolution.
@@ -25,10 +29,10 @@ pub struct ConvolutionLayer<F: Float> {
   pub(in crate) dilations: Option<Array2<i32>>,
   pub(in crate) group: Option<i32>,
   pub(in crate) pads: Array1<F>,
-  pub(in crate) strides: Array1<F>
+  pub(in crate) strides: Array1<F>,
 }
 
-impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: From<F>{
+impl<F: 'static + Float + std::ops::AddAssign + std::default::Default> ConvolutionLayer<F> where f32: From<F> {
   // Creates new convolution layer.
   pub(crate) fn new(
     kernel: Array4<F>,
@@ -103,12 +107,12 @@ impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: Fr
 /// Returns:
 /// -----------------------------------------------
 /// - out: Output data, of shape (B, F, H', W')
-pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
+pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign + std::default::Default>(
   kernel_weights: T,
   im2d: T,
   bias: Option<&Array1<F>>,
   auto_pad: Padding,
-  _dilations: Option<&Array2<i32>>,
+  dilations: Option<&Array2<i32>>,
   group: Option<i32>,
   pads: V, //Option<&Array1<F>>
   strides: V, //Option<&Array1<F>>
@@ -129,8 +133,6 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let new_im_height: usize;
   let new_im_width: usize;
   let weight_shape = kernel_weights_arr.shape();
-  //let bias_arr: Vec<F> = bias.into().to_vec();
-  //let bias_vec: Vec<f32> = bias_arr.to_vec().into();
 
   assert!(im2d_arr.shape()[1] == (weight_shape[0] * group.unwrap() as usize) && weight_shape[1] % group.unwrap() as usize == 0);
 
@@ -146,7 +148,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let mut pads_height_end: usize = 0;
   let mut pads_width_start: usize = 0;
   let mut pads_width_end: usize = 0;
-  if auto_pad == Padding::NotSet{
+  if auto_pad == Padding::NotSet {
     let pads_height_start_as_f = *pads_arr.get(0).unwrap();
     let pads_height_start_as_f32: f32 = pads_height_start_as_f.into();
     pads_height_start = pads_height_start_as_f32 as usize;
@@ -182,7 +184,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
 
       new_im_height = new_im_height_float as usize;
       new_im_width = new_im_width_float as usize;
-    },
+    }
     Padding::SameUpper => {
       // H' = (H / stride).ceil()
       // W' = (W / stride).ceil()
@@ -191,13 +193,13 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
 
       new_im_height = new_im_height_float as usize;
       new_im_width = new_im_width_float as usize;
-    },
+    }
     Padding::NotSet => {
       // H' = {[H - HH + (2*padding)] / stride}+ 1
       // W' = {[W - WW + (2*padding)] / stride} + 1
       new_im_height = ((im_height - kernel_height + (pads_height_start + pads_height_end)) / im_height_stride) + 1;
       new_im_width = ((im_width - kernel_width + (pads_width_start + pads_width_end)) / im_width_stride) + 1;
-    },
+    }
     Padding::Valid => {
       // H' =  ((H - HH) / stride_height) + 1
       // W' =  ((W - WW) / stride_width) + 1
@@ -220,13 +222,13 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     let mut pad_right = 0;
     if auto_pad == Padding::SameUpper || auto_pad == Padding::SameLower {
       (pad_num_h, pad_num_w, pad_top, pad_bottom, pad_left, pad_right) = get_padding_size(im_height, im_width, im_height_stride, im_width_stride, kernel_height, kernel_width);
-    }else if auto_pad == Padding::NotSet {
+    } else if auto_pad == Padding::NotSet {
       pad_top = pads_height_start;
       pad_bottom = pads_height_end;
       pad_left = pads_width_start;
       pad_right = pads_width_end;
-      pad_num_h = pads_height_start+pads_height_end;
-      pad_num_w = pads_width_start+pads_width_end;
+      pad_num_h = pads_height_start + pads_height_end;
+      pad_num_w = pads_width_start + pads_width_end;
     }
     let mut im2d_arr_pad: Array4<F> = Array4::zeros((
       im_batch_size,
@@ -252,9 +254,10 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       im_width_pad,
       im_channel,
       im_height_stride,
-      im_width_stride
+      im_width_stride,
+      dilations,
     );
-  }else{
+  } else {
     im_col = im2col_ref(
       im2d_arr,
       kernel_height,
@@ -263,7 +266,8 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       im_width,
       im_channel,
       im_height_stride,
-      im_width_stride
+      im_width_stride,
+      dilations,
     );
   }
 
@@ -317,7 +321,7 @@ pub(in crate) fn get_padding_size(
   )
 }
 
-pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
+pub(in crate) fn im2col_ref<'a, T, F: 'a + Float + std::default::Default>(
   im_arr: T,
   ker_height: usize,
   ker_width: usize,
@@ -325,7 +329,8 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   im_width: usize,
   im_channel: usize,
   stride_h: usize,
-  stride_w: usize
+  stride_w: usize,
+  dilations: Option<&Array2<i32>>,
 ) -> Array2<F>
   where
   // Args:
@@ -338,28 +343,83 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   // Returns:
   //   col: (new_h*new_w,hh*ww*C) matrix, each column is a cube that will convolve with a filter
   //         new_h = (H-hh) // stride + 1, new_w = (W-ww) // stride + 1
-    T: AsArray<'a, F, Ix4>,
+    T: AsArray<'a, F, Ix4>
 {
-  let im2d_arr: ArrayView4<F> = im_arr.into();
-  let new_h = (im_height - ker_height) / stride_h + 1;
-  let new_w = (im_width - ker_width) / stride_w + 1;
-  let mut cols_img: Array2<F> =
-    Array2::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+  let mut cols_img: Array2<F> = Default::default();
   let mut cont = 0_usize;
-  for i in 1..new_h + 1 {
-    for j in 1..new_w + 1 {
-      let patch = im2d_arr.slice(s![
+  match dilations {
+    Some(dilations) => {
+      let dilation_h = dilations[[0, 0]] as usize;
+      let dilation_w = dilations[[0, 1]] as usize;
+      if dilation_h > 1 || dilation_w > 1 {
+        let im2d_arr: ArrayView4<F> = im_arr.into();
+        let new_h = ((im_height - dilation_h * (ker_height - 1) - 1) / stride_h) + 1;
+        let new_w = ((im_width - dilation_w * (ker_width - 1) - 1) / stride_w) + 1;
+        println!("h:{}, w:{}", new_h, new_w);
+        cols_img = Array2::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+        for i in 1..new_h + 1 {
+          for j in 1..new_w + 1 {
+            let h_start = (i - 1) * stride_h;
+            let h_end = ((((i - 1) * stride_h + ker_height) - (i - 1) * stride_h) * dilation_h) + (i - 1) * stride_h;
+            let w_start = (j - 1) * stride_w;
+            let w_end = ((((j - 1) * stride_w + ker_width) - (j - 1) * stride_w) * dilation_w) + (j - 1) * stride_w;
+            let patch = im2d_arr.slice(s![
+                  ..,
+                  ..,
+                  h_start..h_end; dilation_h,
+                  w_start..w_end; dilation_w
+              ]);
+            let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
+
+            cols_img.row_mut(cont).assign(&patchrow_unwrap);
+            cont += 1;
+          }
+        }
+      }else{
+        let im2d_arr: ArrayView4<F> = im_arr.into();
+        let new_h = ((im_height - ker_height) / stride_h) + 1;
+        let new_w = ((im_width - ker_width) / stride_w) + 1;
+        cols_img = Array2::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+
+        for i in 1..new_h + 1 {
+          for j in 1..new_w + 1 {
+            let patch = im2d_arr.slice(s![
                 ..,
                 ..,
                 (i - 1) * stride_h..((i - 1) * stride_h + ker_height),
                 (j - 1) * stride_w..((j - 1) * stride_w + ker_width),
             ]);
-      let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
+            let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
 
-      cols_img.row_mut(cont).assign(&patchrow_unwrap);
-      cont += 1;
+            cols_img.row_mut(cont).assign(&patchrow_unwrap);
+            cont += 1;
+          }
+        }
+      }
     }
-  }
+    None => {
+      let im2d_arr: ArrayView4<F> = im_arr.into();
+      let new_h = ((im_height - ker_height) / stride_h) + 1;
+      let new_w = ((im_width - ker_width) / stride_w) + 1;
+      cols_img = Array2::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+
+      for i in 1..new_h + 1 {
+        for j in 1..new_w + 1 {
+          let patch = im2d_arr.slice(s![
+                ..,
+                ..,
+                (i - 1) * stride_h..((i - 1) * stride_h + ker_height),
+                (j - 1) * stride_w..((j - 1) * stride_w + ker_width),
+            ]);
+          let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
+
+          cols_img.row_mut(cont).assign(&patchrow_unwrap);
+          cont += 1;
+        }
+      }
+    }
+  };
+
   cols_img
 }
 

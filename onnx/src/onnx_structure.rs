@@ -2898,10 +2898,34 @@ impl TensorProto {
       match attribute_name {
         "dims" => self.dims.push(integer_value.into()),
         "data_type" => self.set_data_type(integer_value),
-        "float_data" => self.float_data.push(float_value),
+        "float_data" => {
+          match self.data_type(){
+            1 => {
+              let aus: Vec<f32> = string_value
+                .split(',')
+                .map(|s| s.trim().parse::<f32>())
+                .filter_map(Result::ok)
+                .collect();
+              self.float_data = aus;
+            },
+            _ => panic!("TENSORPROTO dispatcher float DATA TYPE not implemented: {}", self.data_type.unwrap())
+          }
+        },
         "int32_data" => self.int32_data.push(integer_value),
         "string_data" => self.string_data.push(Vec::from(string_value)),
-        "int64_data" => self.int64_data.push(integer_value.into()),
+        "int64_data" => {
+          match self.data_type(){
+            7 =>{
+              let aus: Vec<i64> = string_value
+                .split(',')
+                .map(|s| s.trim().parse::<i64>())
+                .filter_map(Result::ok)
+                .collect();
+              self.int64_data = aus;
+            },
+            _ => panic!("TENSORPROTO dispatcher i64 DATA TYPE not implemented: {}", self.data_type.unwrap())
+          }
+        },
         "name" => self.set_name(string_value),
         "doc_string" => self.set_doc_string(string_value),
         "raw_data" => {
@@ -2928,7 +2952,7 @@ impl TensorProto {
                 .collect();
               self.set_raw_data(aus_u8);
             },
-            _ => panic!("TENSORPROTO dispatcher DATA TYPE not implemented: {}", self.data_type.unwrap())
+            _ => panic!("TENSORPROTO dispatcher raw data DATA TYPE not implemented: {}", self.data_type.unwrap())
           }
           //printing raw_data as f32
           /*let mut i=0;
