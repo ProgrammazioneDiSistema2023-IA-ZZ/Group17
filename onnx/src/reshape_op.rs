@@ -1,4 +1,4 @@
-use ndarray::{Array, Ix};
+use ndarray::{Array};
 use ndarray::prelude::*;
 use rand::Rng;
 

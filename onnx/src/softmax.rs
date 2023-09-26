@@ -1,6 +1,5 @@
 use ndarray::{Array, Axis};
 use ndarray::prelude::*;
-use num_traits::real::Real;
 
 //OPSET VERSION = 8
 pub fn softmax(input: Array4<f32>, axis: Option<usize>) -> Array2<f32> {

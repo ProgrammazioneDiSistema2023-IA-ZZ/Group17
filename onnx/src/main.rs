@@ -1,6 +1,6 @@
 pub mod onnx_structure;
 
-use std::io::{BufRead, Read};
+use std::io::{Read};
 use std::fs::{File};
 use protobuf::{Message};
 
@@ -17,23 +17,26 @@ mod model_inference;
 mod reshape_op;
 
 use crate::read_onnx::generate_onnx_model;
-use crate::write_onnx::generate_onnx_file;
 use crate::model_inference::inference;
 use crate::onnx_structure::TensorProto;
 
 fn main() {
-  let mut onnx_file = String::from("models/mnist-8.onnx");
+  let onnx_file = String::from("models/mnist-8.onnx");
   let input_path = "mnist_data_0.pb";
   let output_path = "mnist_output_0.pb";
   let input_tensor_name = vec!["Input3", "Parameter193"];
 
-  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  /*let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  let input_path = "squeezenet_data_0.pb";
+  let input_tensor_name = vec!["data_0"];*/
+
+  let model = generate_onnx_model(&onnx_file, "models/onnx.proto");
 //println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();
   let output_data = read_input_data(output_path).unwrap();
 
-  inference(&mut model, input_data, input_tensor_name);
+  inference(model, input_data, input_tensor_name);
   println!("Expected Data: {:?}", output_data);
 
   /*
