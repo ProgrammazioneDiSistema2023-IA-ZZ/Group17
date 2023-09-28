@@ -17,12 +17,11 @@ mod model_inference;
 mod reshape_op;
 
 use crate::read_onnx::generate_onnx_model;
-use crate::write_onnx::generate_onnx_file;
 use crate::model_inference::inference;
 use crate::onnx_structure::TensorProto;
 
 fn main() {
-  let mut onnx_file = String::from("models/mnist-8.onnx");
+  let onnx_file = String::from("models/mnist-8.onnx");
   let input_path = "mnist_data_0.pb";
   let output_path = "mnist_output_0.pb";
   let input_tensor_name = vec!["Input3", "Parameter193"];
