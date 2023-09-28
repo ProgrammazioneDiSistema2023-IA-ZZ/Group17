@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-use std::default;
-use std::hash::Hash;
 use ndarray::{Array1, Array2, Array3, Array4, Axis, concatenate};
+use num_traits::Float;
 use crate::onnx_structure::{ModelProto, NodeProto, TensorProto, ValueInfoProto};
 
 use crate::convolution_op::{ConvolutionLayer as ConvLayerConv, Padding as PadConv};
@@ -97,11 +96,14 @@ fn convolution_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, O
       }
     }
   }
+
+  //dbg!(input_image.clone());
+  //dbg!(kernel.clone());
+  //println!("PADS: {:?}, STRIDES: {:?}, DILATIONS: {:?}", pads, strides, dilations);
   let conv_layer = ConvLayerConv::new_onnx_tensor_flow(kernel.clone(), bias, auto_pad, dilations, group, pads, strides);
   let output_layer: Array4<f32> = conv_layer.convolve(&input_image);
 
-  dbg!("Conv: {:?}", output_layer.clone());
-  //println!("Conv: {:?}", output_layer.clone());
+  //dbg!(output_layer.clone());
   println!("Convolve, done!");
   output_container.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
@@ -110,7 +112,7 @@ fn relu_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Option<A
   let input = Array4::from(output_container.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
   let output_layer: Array4<f32> = relu(&input);
 
-  dbg!("Relu: {:?}", output_layer.clone());
+  //dbg!(output_layer.clone());
   println!("Relu, done!");
   output_container.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
@@ -150,7 +152,7 @@ fn max_pool_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Opti
   let conv_layer = ConvLayerMaxPool::new(auto_pad, pads, kernel_shape, storage_order, strides);
   let output_layer: Array4<f32> = conv_layer.max_pool(&input_image);
 
-  dbg!("MaxPool: {:?}", output_layer.clone());
+  //dbg!(output_layer.clone());
   println!("MaxPool, done!");
   output_container.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
@@ -170,7 +172,7 @@ fn concatenate_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, O
   }
   let output_layer: Array4<f32> = concatenate(Axis(axis as usize), &[input_1.view(), input_2.view()]).unwrap();
 
-  //dbg!("Concatenate: {:?}", output_layer);
+  //dbg!(output_layer);
   println!("Concatenate, done!");
   output_container.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
@@ -196,7 +198,7 @@ fn drop_out_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Opti
    }
   */
 
-  dbg!("Dropout: {:?}", output_layer.0.clone());
+  //dbg!(output_layer.0.clone());
   println!("Dropout, done!");
 
   output_container.insert(node.output[0].clone(), (None, Some(output_layer.0)));
@@ -207,7 +209,7 @@ fn global_average_pool_op(output_container: &mut HashMap<String, (Option<Array2<
 
   let output_layer = global_average_pool(input);
 
-  //dbg!("GlobalAveragePool: {:?}", output_layer);
+  //dbg!(output_layer);
   println!("GlobalAveragePool, done!");
 
   output_container.insert(node.output[0].clone(), (None, Some(output_layer)));
@@ -219,18 +221,19 @@ fn softmax_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Optio
   let result = softmax(input, None);
 
   println!("Softmax, done!");
-  dbg!(result.clone());
+  //dbg!(result.clone());
 
-  /*
   let mut i = 0;
-  while i < 1000 {
-    if result[[0, i]] == 1.0 {
-      println!("Class {}-nth predicted.", i);
-      break;
+  let mut best_class_index = 0;
+  let mut best_class_percentage = f32::min_value();
+  while i < result.len_of(Axis(1)){
+    if result[[0, i]] > best_class_percentage {
+      best_class_percentage = result[[0, i]];
+      best_class_index = i+1;
     }
     i += 1;
   }
-  */
+  println!("\nSqueezenet1.0-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, result.clone());
 }
 
 fn reshape_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>){
@@ -252,7 +255,7 @@ fn reshape_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Optio
 
   let output_layer: Array2<f32> = reshape(data, shape, None);
 
-  dbg!("Reshape: {:?}", output_layer.clone());
+  //dbg!(output_layer.clone());
   println!("Reshape, done!");
   output_container.insert(node.output[0].clone(), (Some(output_layer), None));
 }
@@ -306,14 +309,27 @@ fn add_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Option<Ar
   let mut output_layer_4: Array4<f32> = Default::default();
   if input_1_arr_4.len() > 0{
     output_layer_4 = input_1_arr_4+input_2_arr_3;
-    dbg!("Add: {:?}", output_layer_4.clone());
+    //dbg!(output_layer_4.clone());
     println!("Add, done!");
     output_container.insert(node.output[0].clone(), (None, Some(output_layer_4)));
   }else{
     output_layer_2 = input_1_arr_2+input_2_arr_2;
-    dbg!("Add: {:?}", output_layer_2.clone());
     println!("Add, done!");
-    output_container.insert(node.output[0].clone(), (Some(output_layer_2), None));
+    //dbg!(output_layer_2.clone());
+
+    let mut i = 0;
+    let mut best_class_index = 0;
+    let mut best_class_percentage = f32::min_value();
+    while i < output_layer_2.len_of(Axis(1)){
+      if output_layer_2[[0, i]] > best_class_percentage {
+        best_class_percentage = output_layer_2[[0, i]];
+        best_class_index = i+1;
+      }
+      i += 1;
+    }
+    println!("\nMNist-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, output_layer_2.clone());
+
+    //output_container.insert(node.output[0].clone(), (Some(output_layer_2), None));
   }
 }
 
@@ -323,13 +339,13 @@ fn mul_op(output_container: &mut HashMap<String, (Option<Array2<f32>>, Option<Ar
 
   let output_layer: Array2<f32> = input_1.dot(&input_2);
 
-  dbg!("MatMul: {:?}", output_layer.clone());
+  //dbg!(output_layer.clone());
   println!("MatMul, done!");
   output_container.insert(node.output[0].clone(), (Some(output_layer), None));
 }
 
 fn get_stored_tensor_for_convolution(i: usize, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) -> (Option<Array4<f32>>, Option<Array3<f32>>, Option<Array2<f32>>, Option<Array1<f32>>, Option<Array1<i64>>){
-  let mut shape = search_input_data_shape(model_inputs, &node.input[i]);
+  let shape = search_input_data_shape(model_inputs, &node.input[i]);
 
   let mut raw_data: Vec<f32> = vec![];
   let mut raw_data_i64: Vec<i64> = vec![];
@@ -362,9 +378,9 @@ fn get_stored_tensor_for_convolution(i: usize, node: &NodeProto, model_inputs: &
     (None, None, Some(Array2::from_shape_vec((*shape[0] as usize, *shape[1] as usize), raw_data).unwrap()), None, None)
   }else{
     if raw_data.len() > 0 {
-      (None, None, None, Some(Array1::from_shape_vec((*shape[0] as usize), raw_data).unwrap()), None)
+      (None, None, None, Some(Array1::from_shape_vec(*shape[0] as usize, raw_data).unwrap()), None)
     }else {
-      (None, None, None, None, Some(Array1::from_shape_vec((*shape[0] as usize), raw_data_i64).unwrap()))
+      (None, None, None, None, Some(Array1::from_shape_vec(*shape[0] as usize, raw_data_i64).unwrap()))
     }
   }
 }

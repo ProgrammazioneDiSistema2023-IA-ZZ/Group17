@@ -1,4 +1,4 @@
-use ndarray::{Array, Array2, Array4, Axis};
+use ndarray::{Array, Array4, Axis};
 
 //OPSET VERSION. N channel out
 pub(crate) fn global_average_pool(x: Array4<f32>) -> Array4<f32> {

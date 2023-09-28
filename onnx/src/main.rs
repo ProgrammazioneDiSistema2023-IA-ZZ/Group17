@@ -1,6 +1,6 @@
 pub mod onnx_structure;
 
-use std::io::{BufRead, Read};
+use std::io::{Read};
 use std::fs::{File};
 use protobuf::{Message};
 
@@ -28,12 +28,13 @@ fn main() {
   let input_tensor_name = vec!["Input3", "Parameter193"];
 
   let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
-//println!("{:?}", model);
+  //println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();
   let output_data = read_input_data(output_path).unwrap();
 
   inference(&mut model, input_data, input_tensor_name);
+
   println!("Expected Data: {:?}", output_data);
 
   /*
@@ -42,7 +43,6 @@ fn main() {
   onnx_file.push_str("_generated.onnx");
   generate_onnx_file(&onnx_file, &mut model);
   */
-
 
 }
 

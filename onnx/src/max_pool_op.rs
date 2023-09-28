@@ -23,10 +23,10 @@ pub struct ConvolutionLayer<F: Float> {
   pub(in crate) pads: Array1<F>,
   pub(in crate) kernel_size: Array2<i32>,
   pub(in crate) storage_order: Option<i32>,
-  pub(in crate) strides: Array1<F>
+  pub(in crate) strides: Array1<F>,
 }
 
-impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: From<F>{
+impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: From<F> {
   // Creates new convolution layer.
   pub fn new(
     auto_pad: Padding,
@@ -106,7 +106,7 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   let mut pads_height_end: usize = 0;
   let mut pads_width_start: usize = 0;
   let mut pads_width_end: usize = 0;
-  if auto_pad == Padding::NotSet{
+  if auto_pad == Padding::NotSet {
     let pads_height_start_as_f = *pads_arr.get(0).unwrap();
     let pads_height_start_as_f32: f32 = pads_height_start_as_f.into();
     pads_height_start = pads_height_start_as_f32 as usize;
@@ -142,7 +142,7 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
 
       new_im_height = new_im_height_float as usize;
       new_im_width = new_im_width_float as usize;
-    },
+    }
     Padding::SameUpper => {
       // H' = (H / stride).ceil()
       // W' = (W / stride).ceil()
@@ -151,13 +151,13 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
 
       new_im_height = new_im_height_float as usize;
       new_im_width = new_im_width_float as usize;
-    },
+    }
     Padding::NotSet => {
       // H' = {[H - HH + (2*padding)] / stride}+ 1
       // W' = {[W - WW + (2*padding)] / stride} + 1
       new_im_height = ((im_height - kernel_height + (pads_height_start + pads_height_end)) / im_height_stride) + 1;
       new_im_width = ((im_width - kernel_width + (pads_width_start + pads_width_end)) / im_width_stride) + 1;
-    },
+    }
     Padding::Valid => {
       // H' =  (H - HH) / (stride_height + 1)
       // W' =  (W - WW) / (stride_width + 1)
@@ -175,13 +175,13 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
     let mut pad_right = 0;
     if auto_pad == Padding::SameUpper || auto_pad == Padding::SameLower {
       (pad_num_h, pad_num_w, pad_top, pad_bottom, pad_left, pad_right) = get_padding_size(im_height, im_width, im_height_stride, im_width_stride, kernel_height, kernel_width);
-    }else if auto_pad == Padding::NotSet {
+    } else if auto_pad == Padding::NotSet {
       pad_top = pads_height_start;
       pad_bottom = pads_height_end;
       pad_left = pads_width_start;
       pad_right = pads_width_end;
-      pad_num_h = pads_height_start+pads_height_end;
-      pad_num_w = pads_width_start+pads_width_end;
+      pad_num_h = pads_height_start + pads_height_end;
+      pad_num_w = pads_width_start + pads_width_end;
     }
     let mut im2d_arr_pad: Array4<F> = Array::zeros((
       im_batch_size,
@@ -207,9 +207,9 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       im_width_pad,
       im_channel,
       im_height_stride,
-      im_width_stride
+      im_width_stride,
     );
-  }else{
+  } else {
     im_col = im2col_ref(
       im2d_arr,
       kernel_height,
@@ -218,34 +218,68 @@ pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
       im_width,
       im_channel,
       im_height_stride,
-      im_width_stride
+      im_width_stride,
     );
   }
 
-  let out = max_pool_operation(&im_col, im_channel);
-  let output = out
-    .into_shape((new_im_height, new_im_width, im_batch_size, im_channel))
-    .unwrap()
-    .permuted_axes([2, 3, 0, 1]);
 
-  output
-}
+  let mut output: Array4<F> = Array4::zeros((im_batch_size, im_channel, new_im_height, new_im_width));
+  let mut image_height = 0usize;
+  let mut image_width = 0usize;
+  let mut displacement = 0;
+  //println!("num_channels_out: {}, num_channels_in: {}, image_as_row[{}, {}]", num_channels_out, num_filters, im_col.len_of(Axis(0)), im_col.len_of(Axis(1)));
+  for num_channel_output in 0..im_channel {
+    image_height = 0usize;
+    image_width = 0usize;
+    let mut image_start = 0usize;
+    let mut image_end = im_col.len_of(Axis(0));
+    if im_channel > 1 {
+      image_start = (displacement * im_col.len_of(Axis(0))) / im_channel;
+      if image_start >= im_col.len_of(Axis(0)) {
+        image_start = 0;
+        displacement = 0;
+      }
+      image_end = (im_col.len_of(Axis(0)) / im_channel) + image_start;
+    }
+    //println!("image_start: {}, image_end: {}", image_start, image_end);
+    for row in image_start..image_end {
+      let im_row = im_col.slice(s![row, ..]);
+      /*
+        println!("image row:");
+        for row in im_row.rows() {
+          for &elem in row.iter() {
+            print!("{:?}, ", f32::from(elem));
+          }
+          println!("");
+        }
+       */
+      assert_eq!(im_row.len_of(Axis(0)), kernel_height * kernel_width);
 
-pub(in crate) fn max_pool_operation<F: 'static + Float + std::ops::AddAssign>(input_arr: &Array2<F>, num_channels_out: usize) -> Array2<F> where f32: From<F>{
-  let input: ArrayView2<F> = input_arr.into();
-  let (rows, _cols) = input.dim();
-  let out_rows = rows;
-  let out_cols = 1;
-  let mut output = Array2::<F>::zeros((out_rows, num_channels_out));
+      output[[0, num_channel_output, image_height, image_width]] = im_row.iter().fold(F::min_value(), |max: F, &x| max.max(x.into()));
 
-  for i in 0..out_rows {
-      let window = input.row(i);
-      let max_value = window.iter().fold(f32::min_value(), |max, &x| max.max(x.into()));
-      output.row_mut(i).assign(&Array1::from(vec![F::from(max_value).unwrap()]));
+      if image_width + 1 < new_im_width {
+        image_width += 1;
+      } else {
+        image_height += 1;
+        image_width = 0;
+      }
+    }
+    displacement += 1;
   }
 
+  /*
+  println!("output:");
+  for row in output.rows() {
+    for &elem in row.iter() {
+      print!("{:?}, ", f32::from(elem));
+    }
+    println!("");
+  }
+  */
+
   output
 }
+
 
 pub(in crate) fn get_padding_size(
   input_h: usize,
@@ -295,7 +329,7 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   im_width: usize,
   im_channel: usize,
   stride_h: usize,
-  stride_w: usize
+  stride_w: usize,
 ) -> Array2<F>
   where
   // Args:
@@ -311,33 +345,35 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
     T: AsArray<'a, F, Ix4>,
 {
   let im2d_arr: ArrayView4<F> = im_arr.into();
-  let new_h = (im_height - ker_height) / stride_h + 1;
-  let new_w = (im_width - ker_width) / stride_w + 1;
-  let mut cols_img: Array2<F> =
-    Array::zeros((new_h * new_w, im_channel * ker_height * ker_width));
+  let new_h = ((im_height - ker_height) / stride_h) + 1;
+  let new_w = ((im_width - ker_width) / stride_w) + 1;
+  let mut cols_img: Array2<F> = Array::zeros((new_h * new_w * im_channel, ker_height * ker_width));
   let mut cont = 0_usize;
-  for i in 1..new_h + 1 {
-    for j in 1..new_w + 1 {
-      let patch = im2d_arr.slice(s![
-                ..,
-                ..,
+
+  for k in 0..im_channel {
+    for i in 1..new_h + 1 {
+      for j in 1..new_w + 1 {
+        let patch = im2d_arr.slice(s![
+                0,
+                k,
                 (i - 1) * stride_h..((i - 1) * stride_h + ker_height),
                 (j - 1) * stride_w..((j - 1) * stride_w + ker_width),
             ]);
-      let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
+        let patchrow_unwrap: Array1<F> = Array::from_iter(patch.map(|a| *a));
 
-      cols_img.row_mut(cont).assign(&patchrow_unwrap);
-      cont += 1;
+        cols_img.row_mut(cont).assign(&patchrow_unwrap);
+        cont += 1;
+      }
     }
   }
   cols_img
 }
 
-pub fn test_max_pool(){
+pub fn test_max_pool() {
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(
     (1, 1, 4, 4),
-    vec![1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.,14.,15.,16.]
+    vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.],
   )
     .unwrap();
 

@@ -1,4 +1,4 @@
-use ndarray::{Array, Ix};
+use ndarray::Array;
 use ndarray::prelude::*;
 use rand::Rng;
 
@@ -35,8 +35,6 @@ pub fn reshape_implementation(data: Array4<f32>, shape: Array1<i64>, allowzero: 
   let (d1, d2) = (new_shape[0] as usize, new_shape[1] as usize);
 
   let aus = data.as_slice_memory_order().unwrap();
-  let view = ArrayView::from_shape((d1, d2), &aus);
-  //data.into_shape((d1, d2)).unwrap()
   let arr: Array2<f32> = Array2::from_shape_vec((d1, d2), aus.to_vec()).unwrap();
   arr
 }
