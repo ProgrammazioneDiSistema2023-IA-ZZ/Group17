@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::{io, thread};
+use std::fs::File;
+use std::io::Write;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 use ndarray::{Array1, Array2, Array3, Array4, Axis, concatenate};
@@ -15,7 +17,6 @@ use crate::relu_op::relu;
 use crate::max_pool_op::{ConvolutionLayer as ConvLayerMaxPool, Padding as PadMaxPool};
 use crate::reshape_op::reshape;
 use crate::softmax::softmax;
-
 
 pub(crate) fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec<&str>) {
   let hashmap_outputs_to_inputs: Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>> = Arc::new(Mutex::new(HashMap::new()));
@@ -68,22 +69,17 @@ pub(crate) fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_na
   }
 
   for node in &arc_model.graph.node {
-    print!("TRY INFERENCE ON {:?} by main", node.input);
+    //print!("TRY INFERENCE ON {:?} OVER {} OPERATION by main", node.input);
 
     if found_indipendent_nodes {
       check_pararrel_nodes_and_start_threads(&arc_model, position, node, &mut position_to_skip, &hashmap_outputs_to_inputs, &condition_var, &mut threads);
-
       found_indipendent_nodes = false;
     }
 
     if !position_to_skip.contains(&position) { // Il risultato del nodo non è ancora stato calcolato se è presente in position_to_skip
-      println!();
       possibile_wating_for_previous_results(node, &hashmap_outputs_to_inputs, &condition_var, &arc_model);
 
       check_pararrel_nodes_and_start_threads(&arc_model, position, node, &mut position_to_skip, &hashmap_outputs_to_inputs, &condition_var, &mut threads);
-    } else {
-      print!(" SKIPPED");
-      println!()
     }
 
     position += 1;
@@ -115,7 +111,7 @@ pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_t
     if inputs_are_present {
       node_inference(&node, &hashmap_outputs_to_inputs, &arc_model);
     } else {
-      println!("WAITING RESULTS");
+      println!("MAIN THREAD WAITING FOR CHILDREN THREADS RESULTS");
       let (l, cvar) = &**condition_var;
       let mut new_values_added = l.lock().unwrap();
 
@@ -123,7 +119,7 @@ pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_t
         new_values_added = cvar.wait(new_values_added).unwrap();
       }
 
-      println!("Values obtained {:?}", new_values_added);
+      //println!("Values obtained {:?}", new_values_added);
       *new_values_added = Vec::new();
     }
   }
@@ -166,7 +162,7 @@ pub fn check_pararrel_nodes_and_start_threads(arc_model: &Arc<ModelProto>, posit
 }
 
 pub fn node_inference(node: &NodeProto, hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, model: &Arc<ModelProto>) {
-  println!("INFERENCE ON {:?} by {}", node.input, thread::current().name().unwrap_or("PROCESSO PRINCIPALE"));
+  println!("INFERENCE ON INPUT(s) {:?} OVER {} OPERATION done by {}", node.input, node.op_type.clone().unwrap() ,thread::current().name().unwrap_or("PROCESSO PRINCIPALE"));
 
   let operation = match &node.op_type {
     None => { panic!("Operation {:?} NOT found for node {}", &node.op_type, &node.name.as_ref().unwrap()) }
@@ -251,6 +247,9 @@ fn convolution_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f3
 
   //dbg!(input_image.clone());
   //dbg!(kernel.clone());
+  if pads[[0]] > 0.0 || pads[[1]] > 0.0 || pads[[2]] > 0.0 || pads[[3]] > 0.0{
+    auto_pad = PadConv::NotSet;
+  }
   //println!("PADS: {:?}, STRIDES: {:?}, DILATIONS: {:?}", pads, strides, dilations);
   let conv_layer = ConvLayerConv::new_onnx_tensor_flow(kernel.clone(), bias, auto_pad, dilations, group, pads, strides);
   let output_layer: Array4<f32> = conv_layer.convolve(&input_image);
@@ -272,6 +271,7 @@ fn relu_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Op
   let output_layer: Array4<f32> = relu(&input);
 
   //dbg!("Relu: {:?}", output_layer.clone());
+
   println!("Relu, done! by {}", thread::current().name().unwrap_or("PROCESSO PRINCIPALE"));
 
   let mut map_mut = output_container.lock().unwrap();
@@ -385,6 +385,8 @@ fn global_average_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<A
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
 
+  drop(map);
+
   let output_layer = global_average_pool(input);
 
   //dbg!(output_layer);
@@ -397,6 +399,8 @@ fn global_average_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<A
 fn softmax_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
+
+  drop(map);
 
   let result = softmax(input, None);
 
@@ -424,6 +428,7 @@ fn reshape_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
   } else {
     let map = output_container.lock().unwrap();
     data = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
+    drop(map);
   }
 
   let mut shape: Array1<i64> = Default::default();
@@ -504,19 +509,19 @@ fn add_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Opt
     output_layer_2 = input_1_arr_2+input_2_arr_2;
     //dbg!("Add: {:?}", output_layer_2.clone());
     println!("Add, done! by {}", thread::current().name().unwrap_or("PROCESSO PRINCIPALE"));
-    map_mut.insert(node.output[0].clone(), (Some(output_layer_2), None));
+    map_mut.insert(node.output[0].clone(), (Some(output_layer_2.clone()), None));
 
     let mut i = 0;
     let mut best_class_index = 0;
     let mut best_class_percentage = f32::min_value();
-    while i < output_layer_2.len_of(Axis(1)){
+    while i < output_layer_2.clone().len_of(Axis(1)){
       if output_layer_2[[0, i]] > best_class_percentage {
         best_class_percentage = output_layer_2[[0, i]];
         best_class_index = i+1;
       }
       i += 1;
     }
-    println!("\nMNist-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, output_layer_2.clone());
+    println!("\nMNist-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, output_layer_2);
 
     //output_container.insert(node.output[0].clone(), (Some(output_layer_2), None));
   }
