@@ -19,5 +19,5 @@ Cargo.lock
 # binaries
 .DS_Store
 
-# virtual environment fo python
+# virtual environment for python
 .env
