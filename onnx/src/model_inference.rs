@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 use std::{io, thread};
-use std::fs::File;
-use std::io::Write;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::JoinHandle;
 use ndarray::{Array1, Array2, Array3, Array4, Axis, concatenate};
@@ -18,7 +16,7 @@ use crate::max_pool_op::{ConvolutionLayer as ConvLayerMaxPool, Padding as PadMax
 use crate::reshape_op::reshape;
 use crate::softmax::softmax;
 
-pub(crate) fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec<&str>) {
+pub fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec<&str>) {
   let hashmap_outputs_to_inputs: Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>> = Arc::new(Mutex::new(HashMap::new()));
   let arc_model= Arc::new(model);
 
@@ -247,8 +245,10 @@ fn convolution_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f3
 
   //dbg!(input_image.clone());
   //dbg!(kernel.clone());
-  if pads[[0]] > 0.0 || pads[[1]] > 0.0 || pads[[2]] > 0.0 || pads[[3]] > 0.0{
-    auto_pad = PadConv::NotSet;
+  if !pads.is_empty() {
+    if pads[[0]] > 0.0 || pads[[1]] > 0.0 || pads[[2]] > 0.0 || pads[[3]] > 0.0 {
+      auto_pad = PadConv::NotSet;
+    }
   }
   //println!("PADS: {:?}, STRIDES: {:?}, DILATIONS: {:?}", pads, strides, dilations);
   let conv_layer = ConvLayerConv::new_onnx_tensor_flow(kernel.clone(), bias, auto_pad, dilations, group, pads, strides);
