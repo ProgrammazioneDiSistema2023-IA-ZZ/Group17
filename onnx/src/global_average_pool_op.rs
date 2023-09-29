@@ -22,6 +22,7 @@ pub(crate) fn global_average_pool(x: Array4<f32>) -> Array4<f32> {
   output
 }
 
+#[allow(dead_code)]
 pub fn test_global_average_pool() {
   //(batch size, channels out, height, width)
   let input = Array::from_shape_vec(

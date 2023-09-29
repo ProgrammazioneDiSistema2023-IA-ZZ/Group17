@@ -420,6 +420,8 @@ fn softmax_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
   println!("\nSqueezenet1.0-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, result.clone());
 }
 
+#[allow(unused_assignments)]
+#[allow(unused_variables)]
 fn reshape_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
   let mut data: Array4<f32> = Default::default();
   if already_into_initializer(model_initializers, node.input[0].as_str()) {
@@ -448,6 +450,7 @@ fn reshape_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
   map_mut.insert(node.output[0].clone(), (Some(output_layer), None));
 }
 
+#[allow(unused_assignments)]
 fn add_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
   let mut input_1_arr_4: Array4<f32> = Default::default();
   let mut input_1_arr_2: Array2<f32> = Default::default();

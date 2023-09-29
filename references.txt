@@ -24,3 +24,17 @@ https://netron.app/
 
 GENERATE STRUCT FROM .proto
 protoc --rust_out=path/to/output_dir path/to/your/file.proto
+
+------------------------------------------------
+
+1° volta:
+~Group17: python3 -m venv .env 
+~Group17: source .env/bin/activate
+~Group17: pip install maturin
+~onnx: maturin develop
+
+Ogni volta:
+~onnx: python3
+~onnx: import Group17
+~onnx: Group17.onnx_make_inference("models/mnist-8.onnx", "mnist_data_0.pb", "mnist_output_0.pb", ["Input3", "Parameter193"])
+~onnx: quit()

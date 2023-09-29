@@ -4,6 +4,7 @@ pub fn relu(x: &Array4<f32>) -> Array4<f32> {
   x.map(|&val| val.max(0.0))
 }
 
+#[allow(dead_code)]
 pub fn test_relu(){
   let input = Array::from_shape_vec(
     (1, 1, 7, 5),

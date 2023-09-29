@@ -22,36 +22,60 @@ use crate::onnx_structure::TensorProto;
 use crate::write_onnx::generate_onnx_file;
 
 fn main() {
-  let onnx_file = String::from("models/mnist-8.onnx");
+  //MNIST-8
+  /*let mut onnx_file = String::from("models/mnist-8.onnx");
   let input_path = "mnist_data_0.pb";
   let output_path = "mnist_output_0.pb";
   let input_tensor_name = vec!["Input3", "Parameter193"];
+   */
 
-  /*let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  //SQUEEZENET1.0-8
+  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
   let input_path = "squeezenet_data_0.pb";
   let output_path = "squeezenet_output_0.pb";
-  let input_tensor_name = vec!["data_0"];*/
+  let input_tensor_name = vec!["data_0"];
 
+ read_and_make_inference(onnx_file, input_path, output_path, input_tensor_name);
+  //read_and_write(onnx_file, input_path, output_path, input_tensor_name);
+  //read_modify_write(onnx_file, input_path, output_path, input_tensor_name);
+}
+
+fn read_and_make_inference(onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
   let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();
   let output_data = read_input_data(output_path).unwrap();
 
-  /*let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
-  onnx_file = String::from(onnx_generated_file[0]);
-  onnx_file.push_str("_generated.onnx");
-  generate_onnx_file(&onnx_file, &mut model);*/
-
   inference(model, input_data, input_tensor_name);
 
   println!("Expected Data: {:?}", output_data);
-
 }
 
-fn read_input_data(input_path: &str) -> Option<Vec<f32>>{
-  let mut res: Option<Vec<f32>> = None;
+fn read_and_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
+  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  //println!("{:?}", model);
 
+  let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
+  onnx_file = String::from(onnx_generated_file[0]);
+  onnx_file.push_str("_generated.onnx");
+  generate_onnx_file(&onnx_file, &mut model);
+}
+
+fn read_modify_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
+  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  //println!("{:?}", model);
+
+  model.set_producer_name("Jack&Fabri".to_string());
+  model.graph.as_mut().expect("Graph Not Found").set_name("Jack&Fabri_Graph".to_string());
+
+  let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
+  onnx_file = String::from(onnx_generated_file[0]);
+  onnx_file.push_str("_generated.onnx");
+  generate_onnx_file(&onnx_file, &mut model);
+}
+
+fn read_input_data(input_path: &str) -> Option<Vec<f32>> {
   let mut file = File::open(input_path).expect("Cannot open input file");
 
   let mut buffer = Vec::new();
@@ -59,9 +83,7 @@ fn read_input_data(input_path: &str) -> Option<Vec<f32>>{
 
   let parsed_message = TensorProto::parse_from_bytes(&buffer).expect("Error while deserializing the message");
 
-  res = Some(parsed_message.raw_data.clone().unwrap().chunks_exact(4).map(|chunk| u8_to_f32(chunk)).collect());
-
-  res
+  Some(parsed_message.raw_data.clone().unwrap().chunks_exact(4).map(|chunk| u8_to_f32(chunk)).collect())
 }
 
 fn u8_to_f32(bytes: &[u8]) -> f32 {

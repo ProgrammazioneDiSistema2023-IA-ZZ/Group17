@@ -75,6 +75,8 @@ impl<F: 'static + Float + std::ops::AddAssign> ConvolutionLayer<F> where f32: Fr
 /// Returns:
 /// -----------------------------------------------
 /// - out: Output data, of shape (B, F, H', W')
+#[allow(unused_variables)]
+#[allow(unused_assignments)]
 pub fn max_pool2d<'a, T, V, F: 'static + Float + std::ops::AddAssign>(
   im2d: T,
   auto_pad: Padding,
@@ -369,6 +371,7 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float>(
   cols_img
 }
 
+#[allow(dead_code)]
 pub fn test_max_pool() {
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(

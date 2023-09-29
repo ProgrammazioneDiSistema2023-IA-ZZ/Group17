@@ -40,6 +40,7 @@ pub fn dropout(
   }
 }
 
+#[allow(dead_code)]
 pub fn test_dropout(){
 // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(

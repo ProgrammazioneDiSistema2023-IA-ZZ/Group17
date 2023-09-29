@@ -16,6 +16,7 @@ pub fn softmax(input: Array4<f32>, axis: Option<usize>) -> Array2<f32> {
   exp_x / &sum_exp_x.insert_axis(Axis(axis))
 }
 
+#[allow(dead_code)]
 pub fn test_softmax() {
   // Esempio di utilizzo
   let x = Array::from_shape_vec((1, 1, 2,4), vec![118.85734,5640.1426,2.,3.,1000.,1001.,1002.,1003.]).unwrap();

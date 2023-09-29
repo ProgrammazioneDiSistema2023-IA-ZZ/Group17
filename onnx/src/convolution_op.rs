@@ -104,6 +104,8 @@ impl<F: 'static + Float + std::ops::AddAssign + std::default::Default + std::con
 /// Returns:
 /// -----------------------------------------------
 /// - out: Output data, of shape (B, F, H', W')
+#[allow(unused_assignments)]
+#[allow(unused_variables)]
 pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign + std::default::Default + std::ops::AddAssign<f32>>(
   kernel_weights: T,
   im2d: T,
@@ -282,6 +284,7 @@ pub fn conv2d<'a, T, V, F: 'static + Float + std::ops::AddAssign + std::default:
   }*/
 
   let mut output = Array4::zeros((im_batch_size, num_channels_out, new_im_height, new_im_width));
+
   let mut image_height = 0usize;
   let mut image_width = 0usize;
   let mut displacement = 0;
@@ -438,6 +441,7 @@ pub(in crate) fn get_padding_size(
   )
 }
 
+#[allow(unused_assignments)]
 pub(in crate) fn im2col_ref<'a, T, F: 'a + Float + std::default::Default>(
   im_arr: T,
   ker_height: usize,
@@ -543,6 +547,7 @@ pub(in crate) fn im2col_ref<'a, T, F: 'a + Float + std::default::Default>(
   cols_img
 }
 
+#[allow(unused_assignments)]
 pub(in crate) fn ker2col_ref<'a, T, F: 'a + Float + std::default::Default>(
   im_arr: T,
   ker_height: usize,
@@ -605,6 +610,7 @@ pub(in crate) fn add_bias<F>(x: &Array4<F>, bias: Option<&Array1<F>>) -> Array4<
   }
 }
 
+#[allow(dead_code)]
 fn test_convolution_1_channels_out_1_channels_in() {
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(
@@ -638,6 +644,7 @@ fn test_convolution_1_channels_out_1_channels_in() {
   println!("test_convolution_1_channels_out_1_channels_in: {:?}", output_layer);
 }
 
+#[allow(dead_code)]
 fn test_convolution_2_channels_out_2_channels_in() {
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(
@@ -683,6 +690,7 @@ fn test_convolution_2_channels_out_2_channels_in() {
   println!("test_convolution_2_channels_out_2_channels_in: {:?}", output_layer);
 }
 
+#[allow(dead_code)]
 fn test_convolution_1_channel_out_2_channel_in(){
   // Input has shape (batch_size, channels, height, width)
   let input = Array::from_shape_vec(
@@ -708,6 +716,7 @@ fn test_convolution_1_channel_out_2_channel_in(){
   println!("test_convolution_1_channel_out_2_channel_in: {:?}", output_layer);
 }
 
+#[allow(dead_code)]
 pub fn test_convolution(){
   test_convolution_1_channels_out_1_channels_in();
   println!("\n\n");

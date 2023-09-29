@@ -39,6 +39,7 @@ pub fn reshape_implementation(data: Array4<f32>, shape: Array1<i64>, allowzero: 
   arr
 }
 
+#[allow(dead_code)]
 pub fn test_reshape() {
   // Esempio di utilizzo
   let mut rng = rand::thread_rng();
