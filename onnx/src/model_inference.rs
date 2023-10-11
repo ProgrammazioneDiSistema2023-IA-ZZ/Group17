@@ -16,6 +16,15 @@ use crate::max_pool_op::{ConvolutionLayer as ConvLayerMaxPool, Padding as PadMax
 use crate::reshape_op::reshape;
 use crate::softmax::softmax;
 
+
+/*
+This function make the inference on the model received in input
+  -It takes 3 parameters:
+    ~ model: struct that contains the onnx model
+    ~ input_data: this is the input vector of the model (i.e image of a cat)
+    ~ input_tensor_name: name(s) of the model's input(s)
+  -It prints intermediate type of operations, threads that are working and final result.
+*/
 pub fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec<&str>) {
   let hashmap_outputs_to_inputs: Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>> = Arc::new(Mutex::new(HashMap::new()));
   let arc_model= Arc::new(model);
@@ -89,7 +98,14 @@ pub fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec
   }
 }
 
-/* Main has to stop if the inputs of the considered nodes aren't present. They will be calculated by others threads */
+/*
+This function allow the Main to stop if the inputs of the considered nodes aren't present (They will be calculated by others threads).
+  -It takes 4 parameters:
+    ~ node: the considered node in the model
+    ~ hasmpa_outputs_to_inputs: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ condition_var: the variable used for waiting in case of the inputs aren't present
+    ~ arc_model: smart pointer that contains the onnx struct
+*/
 pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, condition_var: &Arc<(Mutex<Vec<String>>, Condvar)>, arc_model: &Arc<ModelProto>) {
   let mut inputs_are_present = false;
 
@@ -123,6 +139,17 @@ pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_t
   }
 }
 
+/*
+This function start threads if there are nodes that can be executed in parallel.
+  -It takes 7 parameters:
+    ~ arc_model: smart pointer that contains the onnx model
+    ~ position: position of the node in the onnx model
+    ~ node: considered node
+    ~ position_to_skip: positions of the nodes that are already been executed (in terms of inference)
+    ~ hashmap_outputs_to_inputs: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ condition_var: the variable used for notifying that result(s) is ready
+    ~ threads: vector that contains all the generated threads
+*/
 pub fn check_pararrel_nodes_and_start_threads(arc_model: &Arc<ModelProto>, position: i32, node: &NodeProto, position_to_skip: &mut Vec<i32>, hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, condition_var: &Arc<(Mutex<Vec<String>>, Condvar)>, threads: &mut Vec<io::Result<JoinHandle<()>>>) {
   let result = search_node_who_shares_input(&arc_model.graph.node[position as usize + 1..arc_model.graph.node.len() as usize], &node.output[0]);
   if result.is_some() {
@@ -159,6 +186,13 @@ pub fn check_pararrel_nodes_and_start_threads(arc_model: &Arc<ModelProto>, posit
   }
 }
 
+/*
+This function execute the inference operation of the node.
+  -It takes 3 parameters:
+    ~ node: inference node
+    ~ hashmap_outputs_to_inputs: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ model: smart pointer that contains the onnx model
+*/
 pub fn node_inference(node: &NodeProto, hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, model: &Arc<ModelProto>) {
   println!("INFERENCE ON INPUT(s) {:?} OVER {} OPERATION done by {}", node.input, node.op_type.clone().unwrap() ,thread::current().name().unwrap_or("PROCESSO PRINCIPALE"));
 
@@ -182,6 +216,14 @@ pub fn node_inference(node: &NodeProto, hashmap_outputs_to_inputs: &Arc<Mutex<Ha
   }
 }
 
+/*
+This function insert into initializers the input(s) data of the onnx model
+  -It takes 4 parameters:
+    ~ hashmap_outputs_to_inputs: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ model: smart pointer that contains the onnx model
+    ~ input_data: model inputs(s)
+    ~ input_tensor_names: names of the model inputs
+*/
 fn manage_input_data(hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, model: &Arc<ModelProto>, input_data: Vec<f32>, input_tensor_name: Vec<&str>) {
   for input_name in input_tensor_name {
     if !already_into_initializer(&model.graph.initializer, input_name) {
@@ -193,6 +235,14 @@ fn manage_input_data(hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Opti
   }
 }
 
+/*
+This function do the convolution
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which convolution has to be executed
+    ~ model_inputs: inputs of the onnx model
+    ~ model_initializers: initializers of the onnx model
+*/
 fn convolution_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
   let map = output_container.lock().unwrap();
   let input_image = match map.get(&node.input[0]).clone() {
@@ -262,6 +312,12 @@ fn convolution_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f3
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
 
+/*
+This function do the relu
+  -It takes 2 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which relu has to be executed
+*/
 fn relu_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
@@ -278,6 +334,14 @@ fn relu_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Op
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
 
+/*
+This function do the maxpool
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which maxpool has to be executed
+    ~ model_inputs: inputs of the onnx model
+    ~ model_initializers: initializers of the onnx model
+*/
 fn max_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
   let map = output_container.lock().unwrap();
 
@@ -324,6 +388,12 @@ fn max_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
 
+/*
+This function do the concatenate
+  -It takes 2 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which concatenate has to be executed
+*/
 fn concatenate_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input_1 = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
@@ -350,6 +420,12 @@ fn concatenate_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f3
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
 
+/*
+This function do the dropout
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which dropout has to be executed
+*/
 fn drop_out_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
@@ -381,6 +457,12 @@ fn drop_out_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer.0)));
 }
 
+/*
+This function do the global average pool
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which global average pool has to be executed
+*/
 fn global_average_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
@@ -396,6 +478,12 @@ fn global_average_pool_op(output_container: &Arc<Mutex<HashMap<String, (Option<A
   map_mut.insert(node.output[0].clone(), (None, Some(output_layer)));
 }
 
+/*
+This function do the soft max
+  -It takes 2 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which softmax has to be executed
+*/
 fn softmax_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
   let input = Array4::from(map.get(node.input[0].as_str()).unwrap().1.clone().unwrap());
@@ -420,6 +508,14 @@ fn softmax_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
   println!("\nSqueezenet1.0-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, result.clone());
 }
 
+/*
+This function do the reshape
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which reshape has to be executed
+    ~ model_inputs: inputs of the onnx model
+    ~ model_initializers: initializers of the onnx model
+*/
 #[allow(unused_assignments)]
 #[allow(unused_variables)]
 fn reshape_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
@@ -450,6 +546,14 @@ fn reshape_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
   map_mut.insert(node.output[0].clone(), (Some(output_layer), None));
 }
 
+/*
+This function do the add
+  -It takes 4 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which add has to be executed
+    ~ model_inputs: inputs of the onnx model
+    ~ model_initializers: initializers of the onnx model
+*/
 #[allow(unused_assignments)]
 fn add_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) {
   let mut input_1_arr_4: Array4<f32> = Default::default();
@@ -530,6 +634,12 @@ fn add_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Opt
   }
 }
 
+/*
+This function do the mul
+  -It takes 2 parameters:
+    ~ output_container: contains the partial results calculated by inferences operations (i.e. convolution, relu)
+    ~ node: node on which mul has to be executed
+*/
 fn mul_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, node: &NodeProto) {
   let map = output_container.lock().unwrap();
 
@@ -547,6 +657,15 @@ fn mul_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Opt
   map_mut.insert(node.output[0].clone(), (Some(output_layer), None));
 }
 
+/*
+This function get the input tensors needed by the convolution
+  -It takes 4 parameters:
+    ~ i: position of the node in the onnx model
+    ~ node: node on which convolution has to be executed
+    ~ model_inputs: inputs of the onnx model
+    ~ model_initializers: initializers of the onnx model
+It returns the input tensors
+*/
 fn get_stored_tensor_for_convolution(i: usize, node: &NodeProto, model_inputs: &Vec<ValueInfoProto>, model_initializers: &Vec<TensorProto>) -> (Option<Array4<f32>>, Option<Array3<f32>>, Option<Array2<f32>>, Option<Array1<f32>>, Option<Array1<i64>>){
   let shape = search_input_data_shape(model_inputs, &node.input[i]);
 
@@ -588,12 +707,25 @@ fn get_stored_tensor_for_convolution(i: usize, node: &NodeProto, model_inputs: &
   }
 }
 
+/*
+This function searches convert u8 to f32
+  -It takes 1 parameters:
+    ~ bytes: number to convert
+  -It returns the correspondent f32 number
+*/
 fn u8_to_f32(bytes: &[u8]) -> f32 {
   let mut arr = [0; 4];
   arr.copy_from_slice(bytes);
   f32::from_le_bytes(arr)
 }
 
+/*
+This function searches the node's input shape(s) into the onnx model.
+  -It takes 2 parameters:
+    ~ model_inputs: list of the inputs
+    ~ input_name: input to search
+  -It returns the list of shapes
+*/
 fn search_input_data_shape<'a>(model_inputs: &'a Vec<ValueInfoProto>, input_name: &str) -> Vec<&'a i64> {
   let mut shape = vec![];
   for inp in model_inputs {
@@ -630,6 +762,13 @@ fn search_input_data_shape<'a>(model_inputs: &'a Vec<ValueInfoProto>, input_name
   shape
 }
 
+/*
+This function searches if a node's input is already in the model's initializers
+  -It takes 2 parameters:
+    ~ model_initializers: model's initializers
+    ~ input: input to check
+  -It returns true if it's present, false otherwise
+*/
 fn already_into_initializer(model_initializers: &Vec<TensorProto>, input_name: &str) -> bool {
   for init in model_initializers {
     if init.name.is_some() {
@@ -641,7 +780,13 @@ fn already_into_initializer(model_initializers: &Vec<TensorProto>, input_name: &
   false
 }
 
-
+/*
+This function searches if in the model there are node that can be executed in parallel (its shares the same input(s))
+  -It takes 2 parameters:
+    ~ nodes: slice of the nexts nodes
+    ~ input_to_check: name of node's output to check if it's shared among different nodes
+  -It returns the independents nodes and their position in the onnx model
+*/
 fn search_node_who_shares_input(nodes: &[NodeProto], input_to_check: &String) -> Option<(Vec<Vec<NodeProto>>, Vec<i32>)> {
   let mut node_shares_input = 0;
   let mut position = 0;
@@ -685,6 +830,13 @@ fn search_node_who_shares_input(nodes: &[NodeProto], input_to_check: &String) ->
   }
 }
 
+/*
+This function searches if in the model there are node without previous dependencies (they can be executed in a separated threads)
+  -It takes 2 parameters:
+    ~ model: smart pointer that contains the onnx model
+    ~ previous_outputs: vector that contains names of the operations that are already been done
+  -It returns the independents nodes and their position in the onnx model
+*/
 fn search_node_without_previous_dependencies(model: &Arc<ModelProto>, previous_outputs: Vec<&String>) -> Option<(Vec<NodeProto>, Vec<i32>)> {
   let mut position = 0;
   let mut pos_to_skip: Vec<i32> = Vec::new();

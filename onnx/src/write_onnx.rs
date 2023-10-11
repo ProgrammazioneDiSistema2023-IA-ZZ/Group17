@@ -10,7 +10,7 @@ pub fn generate_onnx_file(onnx_file_path: &str, model_proto: &mut ModelProto) ->
 
     let mut output_stram = CodedOutputStream::new(&mut file);
     match model_proto.write_to_with_cached_sizes(&mut output_stram) {
-        Ok(_) => { println!("MODEL WRITED ON FILE CORRECTLY"); true }
-        Err(_) => { println!("ERRO WHILE WRITING MODEL ON FILE"); false}
+        Ok(_) => { println!("MODEL WRITTEN ON FILE CORRECTLY"); true }
+        Err(_) => { println!("ERROR WHILE WRITING MODEL ON FILE"); false}
     }
 }
