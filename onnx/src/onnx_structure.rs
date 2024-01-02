@@ -26,7 +26,7 @@ use crate::onnx_structure::attribute_proto::AttributeType;
 // Generated for lite runtime
 /// Generated files are compatible only with the same version
 /// of protobuf runtime.
-const _PROTOBUF_VERSION_CHECK: () = protobuf::VERSION_3_2_0;
+const _PROTOBUF_VERSION_CHECK: () = protobuf::VERSION_3_3_0;
 
 ///  Attributes
 ///
@@ -753,6 +753,10 @@ pub mod attribute_proto {
         14 => Some(AttributeType::TYPE_PROTOS),
         _ => None
       }
+    }
+
+    fn from_str(s: &str) -> Option<Self> {
+      todo!()
     }
 
     const VALUES: &'static [AttributeType] = &[
@@ -3584,6 +3588,10 @@ pub mod tensor_proto {
       }
     }
 
+    fn from_str(s: &str) -> Option<Self> {
+      todo!()
+    }
+
     const VALUES: &'static [DataType] = &[
       DataType::UNDEFINED,
       DataType::FLOAT,
@@ -3641,6 +3649,10 @@ pub mod tensor_proto {
         1 => Some(DataLocation::EXTERNAL),
         _ => None
       }
+    }
+
+    fn from_str(s: &str) -> Option<Self> {
+      todo!()
     }
 
     const VALUES: &'static [DataLocation] = &[
@@ -5986,6 +5998,10 @@ impl protobuf::Enum for Version {
     }
   }
 
+  fn from_str(s: &str) -> Option<Self> {
+    todo!()
+  }
+
   const VALUES: &'static [Version] = &[
     Version::_START_VERSION,
     Version::IR_VERSION_2017_10_10,
@@ -6030,6 +6046,10 @@ impl protobuf::Enum for OperatorStatus {
       1 => Some(OperatorStatus::STABLE),
       _ => None
     }
+  }
+
+  fn from_str(s: &str) -> Option<Self> {
+    todo!()
   }
 
   const VALUES: &'static [OperatorStatus] = &[

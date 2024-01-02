@@ -505,7 +505,7 @@ fn softmax_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>,
     }
     i += 1;
   }
-  println!("\nSqueezenet1.0-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, result.clone());
+  println!("\nSqueezenet1.0-8 Inference results: Class {}-nth predicted.\nActual Data: {:?}", best_class_index, result.clone());
 }
 
 /*
@@ -628,7 +628,7 @@ fn add_op(output_container: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Opt
       }
       i += 1;
     }
-    println!("\nMNist-8 Inference results: Class {}-nth predicted with probability of {}%.\nActual Data: {:?}", best_class_index, best_class_percentage, output_layer_2);
+    println!("\nMNist-8 Inference results: Class {}-nth predicted.\nActual Data: {:?}", best_class_index, output_layer_2);
 
     //output_container.insert(node.output[0].clone(), (Some(output_layer_2), None));
   }

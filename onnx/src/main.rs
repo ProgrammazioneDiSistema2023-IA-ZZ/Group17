@@ -18,30 +18,31 @@ mod reshape_op;
 
 use crate::read_onnx::generate_onnx_model;
 use crate::model_inference::inference;
-use crate::onnx_structure::TensorProto;
+use crate::onnx_structure::{ModelProto, TensorProto};
 use crate::write_onnx::generate_onnx_file;
 
 fn main() {
   //MNIST-8
-  /*let mut onnx_file = String::from("models/mnist-8.onnx");
+  let mut onnx_file = String::from("models/mnist-8.onnx");
   let input_path = "mnist_data_0.pb";
   let output_path = "mnist_output_0.pb";
   let input_tensor_name = vec!["Input3", "Parameter193"];
-   */
 
   //SQUEEZENET1.0-8
-  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  /*let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
   let input_path = "squeezenet_data_0.pb";
   let output_path = "squeezenet_output_0.pb";
-  let input_tensor_name = vec!["data_0"];
+  let input_tensor_name = vec!["data_0"];*/
 
- read_and_make_inference(onnx_file, input_path, output_path, input_tensor_name);
+  read_and_make_inference(onnx_file, input_path, output_path, input_tensor_name);
   //read_and_write(onnx_file, input_path, output_path, input_tensor_name);
   //read_modify_write(onnx_file, input_path, output_path, input_tensor_name);
 }
 
 fn read_and_make_inference(onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
-  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  let onnx_bytes = std::fs::read(onnx_file).expect("Failed to read file");
+  let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+  //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();
@@ -53,7 +54,9 @@ fn read_and_make_inference(onnx_file: String, input_path: &str, output_path: &st
 }
 
 fn read_and_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
-  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  let onnx_bytes = std::fs::read(onnx_file.clone()).expect("Failed to read file");
+  let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+  //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
   let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();
@@ -63,7 +66,9 @@ fn read_and_write(mut onnx_file: String, input_path: &str, output_path: &str, in
 }
 
 fn read_modify_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
-  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  let onnx_bytes = std::fs::read(onnx_file.clone()).expect("Failed to read file");
+  let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+  //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
   model.set_producer_name("Jack&Fabri".to_string());
