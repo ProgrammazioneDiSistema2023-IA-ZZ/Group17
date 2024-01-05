@@ -18,21 +18,21 @@ mod reshape_op;
 
 use crate::read_onnx::generate_onnx_model;
 use crate::model_inference::inference;
-use crate::onnx_structure::{ModelProto, TensorProto};
+use crate::onnx_structure::{ModelProto, NodeProto, TensorProto};
 use crate::write_onnx::generate_onnx_file;
 
 fn main() {
   //MNIST-8
   let mut onnx_file = String::from("models/mnist-8.onnx");
-  let input_path = "mnist_data_0.pb";
-  let output_path = "mnist_output_0.pb";
+  let input_path = "mnist_data_0.pb"; //image gathered from the mnist repo
+  let output_path = "mnist_output_0.pb"; //output gathered from the mnist repo
   let input_tensor_name = vec!["Input3", "Parameter193"];
 
   //SQUEEZENET1.0-8
-  /*let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
-  let input_path = "squeezenet_data_0.pb";
-  let output_path = "squeezenet_output_0.pb";
-  let input_tensor_name = vec!["data_0"];*/
+  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  let input_path = "squeezenet_data_0.pb"; //image gathered from the squeezenet repo
+  let output_path = "squeezenet_output_0.pb"; //output gathered from the squeezenet repo
+  let input_tensor_name = vec!["data_0"];
 
   read_and_make_inference(onnx_file, input_path, output_path, input_tensor_name);
   //read_and_write(onnx_file, input_path, output_path, input_tensor_name);
@@ -40,8 +40,11 @@ fn main() {
 }
 
 fn read_and_make_inference(onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
+  /*Library parsing call*/
   let onnx_bytes = std::fs::read(onnx_file).expect("Failed to read file");
   let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+
+  /*Custom parsing call*/
   //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
@@ -54,8 +57,11 @@ fn read_and_make_inference(onnx_file: String, input_path: &str, output_path: &st
 }
 
 fn read_and_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
+  /*Library parsing call*/
   let onnx_bytes = std::fs::read(onnx_file.clone()).expect("Failed to read file");
   let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+
+  /*Custom parsing call*/
   //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
@@ -66,12 +72,23 @@ fn read_and_write(mut onnx_file: String, input_path: &str, output_path: &str, in
 }
 
 fn read_modify_write(mut onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
+  /*Library parsing call*/
   let onnx_bytes = std::fs::read(onnx_file.clone()).expect("Failed to read file");
   let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+
+  /*Custom parsing call*/
   //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
+  /* Model edit: producer name*/
   model.set_producer_name("Jack&Fabri".to_string());
+
+  /* Model edit: adding a new node */
+  let mut new_node_proto = model.graph.node[0].clone();
+  new_node_proto.set_name("Node Jack&Fabri".to_string());
+  model.graph.as_mut().expect("Graph Not Found").node.insert(0, new_node_proto);
+
+  /* Model edit: model name*/
   model.graph.as_mut().expect("Graph Not Found").set_name("Jack&Fabri_Graph".to_string());
 
   let onnx_generated_file: Vec<&str> = onnx_file.split(".onnx").collect();

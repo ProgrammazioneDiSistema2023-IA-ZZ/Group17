@@ -15,9 +15,9 @@ use std::fs::File;
 use std::io::Read;
 use pyo3::prelude::*;
 
+use crate::onnx_structure::{ModelProto, TensorProto};
 use crate::read_onnx::generate_onnx_model;
 use crate::model_inference::inference;
-use crate::onnx_structure::TensorProto;
 use protobuf::Message;
 
 /// A Python module implemented in Rust.
@@ -29,7 +29,12 @@ fn Group17(_py: Python, m: &PyModule) -> PyResult<()> {
 
 #[pyfunction]
 fn onnx_make_inference (onnx_file: String, input_path: &str, output_path: &str, input_tensor_name: Vec<&str>) {
-  let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
+  /* LIBRARY PARSING */
+  let onnx_bytes = std::fs::read(onnx_file.clone()).expect("Failed to read file");
+  let mut model = ModelProto::parse_from_bytes(&*onnx_bytes).expect("Failed to convert the file");
+
+  /* CUSTOM PARSING */
+  //let mut model = generate_onnx_model(&onnx_file, "models/onnx.proto");
   //println!("{:?}", model);
 
   let input_data = read_input_data(input_path).unwrap();

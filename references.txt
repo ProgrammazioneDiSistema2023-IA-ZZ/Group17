@@ -26,9 +26,8 @@ GENERATE STRUCT FROM .proto
 protoc --rust_out=path/to/output_dir path/to/your/file.proto
 
 ------------------------------------------------
+How to Build Python .whl:
 
-Build Python .whl
+    maturin build --interpreter python3.9
 
-maturin build --interpreter python3.9
-
-pip install "...".whl
+    pip install <whl_name>.whl

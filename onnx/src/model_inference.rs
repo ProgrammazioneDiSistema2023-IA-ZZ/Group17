@@ -83,7 +83,7 @@ pub fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec
       found_indipendent_nodes = false;
     }
 
-    if !position_to_skip.contains(&position) { // Il risultato del nodo non è ancora stato calcolato se è presente in position_to_skip
+    if !position_to_skip.contains(&position) {
       possibile_wating_for_previous_results(node, &hashmap_outputs_to_inputs, &condition_var, &arc_model);
 
       check_pararrel_nodes_and_start_threads(&arc_model, position, node, &mut position_to_skip, &hashmap_outputs_to_inputs, &condition_var, &mut threads);
@@ -129,6 +129,7 @@ pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_t
       let (l, cvar) = &**condition_var;
       let mut new_values_added = l.lock().unwrap();
 
+      // avoid to fall asleep when results are already available (and spurious notification as well)
       while new_values_added.len() == 0 {
         new_values_added = cvar.wait(new_values_added).unwrap();
       }
@@ -153,7 +154,6 @@ This function start threads if there are nodes that can be executed in parallel.
 pub fn check_pararrel_nodes_and_start_threads(arc_model: &Arc<ModelProto>, position: i32, node: &NodeProto, position_to_skip: &mut Vec<i32>, hashmap_outputs_to_inputs: &Arc<Mutex<HashMap<String, (Option<Array2<f32>>, Option<Array4<f32>>)>>>, condition_var: &Arc<(Mutex<Vec<String>>, Condvar)>, threads: &mut Vec<io::Result<JoinHandle<()>>>) {
   let result = search_node_who_shares_input(&arc_model.graph.node[position as usize + 1..arc_model.graph.node.len() as usize], &node.output[0]);
   if result.is_some() {
-    /* Lanciare thread */
     let mut vec_to_add = result.clone().unwrap().1;
     let parallel_nodes = result.unwrap().0;
 
