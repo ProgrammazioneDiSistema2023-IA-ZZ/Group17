@@ -29,10 +29,10 @@ fn main() {
   let input_tensor_name = vec!["Input3", "Parameter193"];
 
   //SQUEEZENET1.0-8
-  let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
+  /*let mut onnx_file = String::from("models/squeezenet1.0-8.onnx");
   let input_path = "squeezenet_data_0.pb"; //image gathered from the squeezenet repo
   let output_path = "squeezenet_output_0.pb"; //output gathered from the squeezenet repo
-  let input_tensor_name = vec!["data_0"];
+  let input_tensor_name = vec!["data_0"];*/
 
   read_and_make_inference(onnx_file, input_path, output_path, input_tensor_name);
   //read_and_write(onnx_file, input_path, output_path, input_tensor_name);
