@@ -78,6 +78,7 @@ pub fn inference(model: ModelProto, input_data: Vec<f32>, input_tensor_name: Vec
   for node in &arc_model.graph.node {
     //print!("TRY INFERENCE ON {:?} OVER {} OPERATION by main", node.input);
 
+    // We have to check if after the start node, that is independent, there are parallel nodes
     if found_indipendent_nodes {
       check_pararrel_nodes_and_start_threads(&arc_model, position, node, &mut position_to_skip, &hashmap_outputs_to_inputs, &condition_var, &mut threads);
       found_indipendent_nodes = false;
@@ -133,6 +134,9 @@ pub fn possibile_wating_for_previous_results(node: &NodeProto, hashmap_outputs_t
       while new_values_added.len() == 0 {
         new_values_added = cvar.wait(new_values_added).unwrap();
       }
+
+      //The input data of the node is search in the hash because it's possible that the node could need additional data (compered to the ones
+      //calculated by the child threads)
 
       //println!("Values obtained {:?}", new_values_added);
       *new_values_added = Vec::new();

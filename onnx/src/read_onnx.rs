@@ -16,6 +16,8 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
     Err(err) => panic!("{}", err)
   };
 
+  //println!("{:?}", proto_structure);
+
   let onnx_bytes = std::fs::read(onnx_file_path).expect("Failed to read file");
   let mut counter = 0; //counter of read bytes
 
@@ -183,7 +185,7 @@ pub fn generate_onnx_model(onnx_file_path: &str, proto_file_path: &str) -> Model
         //converting u32 to array of u8
         let bytes: [u8; 4] = int_value.to_le_bytes();
         //transmuting the array into a float
-        let float_value: f32 = unsafe { std::mem::transmute(bytes) };
+        let float_value: f32 = unsafe { std::mem::transmute(bytes) }; // Copies the bit values from the source  (bytes) to the dest (float_value) as they are
 
         model_proto.dispatch(&lifo_stack_named_struct, &lifo_stack_struct[1..], field_name.as_str(), 0, float_value, String::default(), false);
 
